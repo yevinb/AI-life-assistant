@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LifeAI — Intelligent Personal Command Centre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#080a08; --ink:#0e1210; --surface:#131814; --surface-2:#181f19; --surface-3:#1e2820;
+  --border:#243020; --border-2:#1a2218;
+  --gold:#c9a84c; --gold-b:#e8c96a; --gold-d:#8a6e2e; --gold-g:rgba(201,168,76,.10); --gold-g2:rgba(201,168,76,.04);
+  --em:#4ade80; --em-d:#166534; --em-g:rgba(74,222,128,.08);
+  --danger:#f87171; --warn:#fbbf24; --info:#93c5fd;
+  --text:#e8ede4; --text-2:#8a9e82; --text-3:#3d5038; --text-4:#253020;
+  --display:'Cormorant Garamond',Georgia,serif;
+  --body:'Outfit',sans-serif; --mono:'Fira Code',monospace;
+  --r:6px; --rm:12px; --rl:18px; --rx:24px;
+  --ease:cubic-bezier(.4,0,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--body);background:var(--void);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 15% 0%,rgba(201,168,76,.06) 0%,transparent 70%),radial-gradient(ellipse 40% 60% at 85% 100%,rgba(74,222,128,.04) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}::-webkit-scrollbar-thumb:hover{background:var(--gold-d);}
+
+/* SHELL */
+.shell{display:grid;grid-template-columns:256px 1fr;grid-template-rows:62px 1fr;height:100vh;position:relative;z-index:1;}
+
+/* TOPBAR */
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 22px;border-bottom:1px solid var(--border);background:rgba(8,10,8,.88);backdrop-filter:blur(20px) saturate(1.5);position:relative;z-index:50;}
+.logo-g{display:flex;align-items:center;gap:13px;}
+.logo-svg{width:34px;height:34px;flex-shrink:0;}
+.logo-words{display:flex;flex-direction:column;line-height:1;}
+.logo-name{font-family:var(--display);font-size:1.2rem;font-weight:400;letter-spacing:.06em;color:var(--text);}
+.logo-tag{font-size:.58rem;font-family:var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--text-3);margin-top:2px;}
+.top-pills{display:flex;align-items:center;gap:6px;}
+.pill{display:flex;align-items:center;gap:6px;padding:5px 13px;background:var(--surface);border:1px solid var(--border);border-radius:999px;font-size:.7rem;font-family:var(--mono);color:var(--text-2);}
+.pip{width:6px;height:6px;border-radius:50%;background:var(--em);box-shadow:0 0 8px var(--em);animation:breathe 3s ease-in-out infinite;}
+.pip.g{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.7);}}
+.top-r{display:flex;align-items:center;gap:12px;}
+#tclock{font-family:var(--mono);font-size:.78rem;color:var(--text-2);letter-spacing:.04em;}
+.av{width:34px;height:34px;background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:var(--void);cursor:pointer;transition:box-shadow .2s;}
+.av:hover{box-shadow:0 0 0 3px rgba(201,168,76,.2);}
+
+/* SIDEBAR */
+.sidebar{border-right:1px solid var(--border);background:var(--ink);padding:18px 11px;display:flex;flex-direction:column;overflow-y:auto;gap:2px;}
+.s-sect{padding:14px 10px 6px;font-size:.58rem;font-family:var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--text-4);margin-top:6px;}
+.s-sect:first-child{margin-top:0;}
+.nav-b{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rm);cursor:pointer;font-size:.8rem;font-weight:400;color:var(--text-2);transition:all .15s var(--ease);border:1px solid transparent;position:relative;user-select:none;}
+.nav-b:hover{background:var(--surface);color:var(--text);border-color:var(--border);}
+.nav-b.on{background:var(--gold-g);color:var(--gold);border-color:rgba(201,168,76,.18);font-weight:500;}
+.nav-b.on::before{content:'';position:absolute;left:-1px;top:22%;bottom:22%;width:2px;background:var(--gold);border-radius:0 2px 2px 0;box-shadow:0 0 6px var(--gold);}
+.nav-ic{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.nbadge{margin-left:auto;min-width:18px;height:18px;background:var(--gold);color:var(--void);font-size:.58rem;font-family:var(--mono);font-weight:600;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 5px;}
+.nbadge.gr{background:var(--em);color:var(--void);}
+.sf{margin-top:auto;padding:16px 10px;border-top:1px solid var(--border-2);}
+.sf-l{font-size:.6rem;font-family:var(--mono);color:var(--text-3);margin-bottom:8px;letter-spacing:.1em;text-transform:uppercase;}
+.sf-r{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sf-n{font-size:.7rem;color:var(--text-2);flex:1;}
+.sf-bw{width:56px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.sf-bf{height:100%;border-radius:2px;background:var(--gold);}
+.sf-v{font-size:.62rem;font-family:var(--mono);color:var(--text-3);min-width:26px;text-align:right;}
+
+/* MAIN */
+.main{overflow-y:auto;overflow-x:hidden;position:relative;}
+
+/* PANELS */
+.panel{display:none;padding:36px 40px 60px;flex-direction:column;gap:26px;animation:rup .38s var(--ease) both;}
+.panel.on{display:flex;}
+@keyframes rup{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+/* PANEL HEADER */
+.ph{display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:22px;border-bottom:1px solid var(--border-2);position:relative;}
+.ph::after{content:'';position:absolute;bottom:-1px;left:0;width:56px;height:1px;background:var(--gold);box-shadow:0 0 8px var(--gold-d);}
+.ph-eye{font-size:.6rem;font-family:var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;}
+.ph-h{font-family:var(--display);font-size:2.5rem;font-weight:300;letter-spacing:-.02em;line-height:1;}
+.ph-h em{font-style:italic;color:var(--gold);}
+.ph-sub{font-size:.8rem;color:var(--text-2);margin-top:7px;font-weight:300;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:22px 24px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.card:hover{border-color:rgba(201,168,76,.2);box-shadow:0 8px 40px rgba(0,0,0,.4);}
+.card::after{content:'';position:absolute;top:0;right:0;width:56px;height:56px;background:radial-gradient(circle at top right,rgba(201,168,76,.05),transparent 70%);pointer-events:none;}
+.c-eye{font-size:.58rem;font-family:var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:13px;display:flex;align-items:center;gap:8px;}
+.c-eye::before{content:'';width:14px;height:1px;background:var(--gold-d);}
+.c-title{font-size:.92rem;font-weight:500;color:var(--text);margin-bottom:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+
+/* KPI CARDS */
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;display:flex;flex-direction:column;gap:12px;transition:all .2s var(--ease);position:relative;overflow:hidden;cursor:default;}
+.kpi:hover{border-color:rgba(201,168,76,.25);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.kpi::before{content:attr(data-n);position:absolute;right:14px;bottom:4px;font-family:var(--display);font-size:4rem;font-weight:300;color:rgba(201,168,76,.04);line-height:1;pointer-events:none;}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;}
+.kpi-ic{width:36px;height:36px;border-radius:var(--r);background:var(--gold-g);border:1px solid rgba(201,168,76,.14);display:flex;align-items:center;justify-content:center;color:var(--gold);}
+.kpi-tr{font-size:.68rem;font-family:var(--mono);padding:3px 8px;border-radius:999px;}
+.kpi-tr.up{background:rgba(74,222,128,.12);color:var(--em);}
+.kpi-tr.dn{background:rgba(248,113,113,.12);color:var(--danger);}
+.kpi-tr.fl{background:rgba(201,168,76,.10);color:var(--gold);}
+.kpi-val{font-family:var(--mono);font-size:1.8rem;font-weight:500;color:var(--text);line-height:1;letter-spacing:-.02em;}
+.kpi-lbl{font-size:.72rem;color:var(--text-2);font-weight:300;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--rm);font-family:var(--body);font-size:.8rem;font-weight:500;cursor:pointer;transition:all .17s var(--ease);border:1px solid transparent;white-space:nowrap;}
+.btn-gold{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--void);box-shadow:0 2px 10px rgba(201,168,76,.18);}
+.btn-gold:hover{background:linear-gradient(135deg,var(--gold),var(--gold-b));box-shadow:0 4px 18px rgba(201,168,76,.32);transform:translateY(-1px);}
+.btn-out{background:transparent;color:var(--text-2);border-color:var(--border);}
+.btn-out:hover{background:var(--surface-2);color:var(--text);border-color:rgba(201,168,76,.28);}
+.btn:disabled{opacity:.38;cursor:not-allowed;transform:none!important;}
+
+/* FORM */
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:.68rem;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);}
+input,textarea,select{font-family:var(--body);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--rm);color:var(--text);padding:9px 13px;font-size:.83rem;transition:all .15s;outline:none;width:100%;}
+input:focus,textarea:focus,select:focus{border-color:rgba(201,168,76,.38);box-shadow:0 0 0 3px rgba(201,168,76,.06);background:var(--surface-3);}
+input::placeholder,textarea::placeholder{color:var(--text-4);}
+select option{background:var(--surface-3);}
+
+/* TIMELINE */
+.tl{display:flex;flex-direction:column;position:relative;}
+.tl::before{content:'';position:absolute;left:43px;top:20px;bottom:20px;width:1px;background:linear-gradient(to bottom,transparent,var(--border),var(--border),transparent);}
+.tl-i{display:flex;align-items:flex-start;gap:0;padding-bottom:18px;animation:rup .4s var(--ease) both;}
+.tl-i:last-child{padding-bottom:0;}
+.tl-t{font-family:var(--mono);font-size:.7rem;color:var(--gold);min-width:40px;padding-top:1px;text-align:right;flex-shrink:0;}
+.tl-dw{display:flex;flex-direction:column;align-items:center;padding:0 13px;flex-shrink:0;}
+.tl-d{width:10px;height:10px;border-radius:50%;background:var(--surface-3);border:2px solid var(--border);transition:all .2s;}
+.tl-d.gr{border-color:var(--em);background:rgba(74,222,128,.12);}
+.tl-d.go{border-color:var(--gold);background:var(--gold-g);}
+.tl-d.rd{border-color:var(--danger);background:rgba(248,113,113,.1);}
+.tl-d.bl{border-color:var(--info);background:rgba(147,197,253,.08);}
+.tl-b{flex:1;}
+.tl-name{font-size:.86rem;font-weight:400;color:var(--text);line-height:1.3;}
+.tl-meta{font-size:.7rem;color:var(--text-3);margin-top:3px;font-family:var(--mono);}
+.tl-tag{display:inline-flex;margin-top:5px;padding:2px 8px;border-radius:999px;font-size:.6rem;font-family:var(--mono);border:1px solid var(--border);color:var(--text-3);background:var(--surface-2);}
+
+/* TASKS */
+.t-row{display:flex;align-items:center;gap:13px;padding:12px 15px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--rm);transition:all .14s;cursor:pointer;position:relative;overflow:hidden;}
+.t-row:hover{border-color:rgba(201,168,76,.2);background:var(--surface-3);}
+.t-row.done{opacity:.36;}
+.t-row.done .t-lbl{text-decoration:line-through;}
+.t-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;}
+.t-row.ph::before{background:var(--danger);}
+.t-row.pm::before{background:var(--warn);}
+.t-row.pl::before{background:var(--info);}
+.t-chk{width:19px;height:19px;border-radius:5px;flex-shrink:0;border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;transition:all .2s var(--spring);cursor:pointer;}
+.t-chk.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 10px rgba(201,168,76,.28);}
+.t-lbl{flex:1;font-size:.86rem;}
+.t-p{font-size:.6rem;font-family:var(--mono);padding:3px 9px;border-radius:999px;font-weight:500;}
+.t-p.high{background:rgba(248,113,113,.1);color:var(--danger);border:1px solid rgba(248,113,113,.2);}
+.t-p.medium{background:rgba(251,191,36,.08);color:var(--warn);border:1px solid rgba(251,191,36,.18);}
+.t-p.low{background:rgba(147,197,253,.08);color:var(--info);border:1px solid rgba(147,197,253,.18);}
+.t-del{opacity:0;transition:opacity .14s;color:var(--text-3);cursor:pointer;font-size:.78rem;padding:2px 4px;}
+.t-row:hover .t-del{opacity:1;}
+
+/* APPOINTMENTS */
+.a-row{display:flex;gap:14px;align-items:center;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--rm);transition:all .14s;}
+.a-row:hover{border-color:rgba(201,168,76,.2);background:var(--surface-3);}
+.a-cal{display:flex;flex-direction:column;align-items:center;justify-content:center;width:50px;height:54px;flex-shrink:0;background:var(--gold-g);border:1px solid rgba(201,168,76,.18);border-radius:var(--rm);}
+.a-num{font-family:var(--display);font-size:1.45rem;font-weight:400;color:var(--gold);line-height:1;}
+.a-mo{font-size:.56rem;font-family:var(--mono);color:var(--text-3);text-transform:uppercase;letter-spacing:.1em;}
+.a-inf{flex:1;}
+.a-name{font-size:.88rem;font-weight:500;margin-bottom:5px;}
+.a-meta{display:flex;gap:12px;flex-wrap:wrap;}
+.a-mi{display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--text-2);}
+
+/* EMAILS */
+.e-row{padding:13px 15px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--rm);cursor:pointer;transition:all .14s;position:relative;overflow:hidden;}
+.e-row:hover{border-color:rgba(201,168,76,.2);background:var(--surface-3);}
+.e-row.ur{border-left:2px solid var(--gold);}
+.e-row.ur::after{content:'';position:absolute;top:13px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);}
+.e-from{font-size:.83rem;font-weight:500;margin-bottom:3px;}
+.e-sub{font-size:.78rem;color:var(--text-2);margin-bottom:3px;}
+.e-prev{font-size:.7rem;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88%;}
+.e-time{position:absolute;top:13px;right:24px;font-size:.62rem;font-family:var(--mono);color:var(--text-3);}
+
+/* CHAT PANEL */
+#panel-chat{padding:0;height:calc(100vh - 62px);gap:0;}
+.chat-body{flex:1;overflow-y:auto;padding:30px 38px 18px;display:flex;flex-direction:column;gap:20px;}
+.cm{display:flex;gap:13px;max-width:660px;animation:rup .28s var(--ease) both;}
+.cm.u{align-self:flex-end;flex-direction:row-reverse;}
+.m-av{width:33px;height:33px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;font-family:var(--mono);}
+.cm.ai .m-av{background:var(--gold-g);border:1px solid rgba(201,168,76,.22);color:var(--gold);}
+.cm.u  .m-av{background:var(--surface-3);border:1px solid var(--border);color:var(--text-2);}
+.m-bub{padding:12px 16px;border-radius:16px;font-size:.86rem;line-height:1.7;}
+.cm.ai .m-bub{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:3px;color:var(--text);}
+.cm.u  .m-bub{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--void);border-bottom-right-radius:3px;font-weight:500;}
+.m-time{font-size:.6rem;font-family:var(--mono);color:var(--text-4);margin-top:4px;padding:0 3px;}
+.cm.u .m-time{text-align:right;}
+.typ-row{display:none;gap:13px;padding:0 38px 10px;}
+.typ-row.on{display:flex;}
+.typ-b{padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:3px;display:flex;align-items:center;gap:5px;}
+.td{width:6px;height:6px;border-radius:50%;background:var(--text-3);animation:tdot 1.4s infinite;}
+.td:nth-child(2){animation-delay:.2s;}.td:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,80%,100%{transform:scale(1);background:var(--text-3);}40%{transform:scale(1.3);background:var(--gold);}}
+.chat-ft{padding:14px 38px 22px;border-top:1px solid var(--border);background:rgba(8,10,8,.82);backdrop-filter:blur(12px);}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.chip{padding:5px 12px;background:var(--surface);border:1px solid var(--border);border-radius:999px;font-size:.7rem;cursor:pointer;color:var(--text-2);transition:all .14s;}
+.chip:hover{border-color:rgba(201,168,76,.38);color:var(--gold);background:var(--gold-g);}
+.ci-row{display:flex;gap:9px;align-items:flex-end;}
+#cinput{flex:1;resize:none;border-radius:var(--rx);min-height:48px;max-height:130px;padding:12px 16px;font-size:.86rem;line-height:1.5;}
+.sbtn{width:48px;height:48px;flex-shrink:0;border-radius:var(--rx);background:linear-gradient(135deg,var(--gold-d),var(--gold));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--void);transition:all .17s;box-shadow:0 2px 10px rgba(201,168,76,.18);}
+.sbtn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-b));box-shadow:0 4px 18px rgba(201,168,76,.32);transform:scale(1.04);}
+.sbtn:disabled{opacity:.35;transform:none;cursor:not-allowed;}
+
+/* FINANCE */
+.pb{height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;margin:7px 0 4px;}
+.pf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold-d),var(--gold));transition:width .9s var(--ease);}
+.p-lbls{display:flex;justify-content:space-between;font-size:.66rem;font-family:var(--mono);color:var(--text-3);}
+.ex-r{display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--rm);transition:all .14s;}
+.ex-r:hover{border-color:rgba(201,168,76,.14);background:var(--surface-3);}
+.ex-ic{width:34px;height:34px;border-radius:var(--r);background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+.ex-inf{flex:1;}.ex-n{font-size:.8rem;}.ex-c{font-size:.66rem;color:var(--text-3);font-family:var(--mono);}
+.ex-a{font-family:var(--mono);font-size:.88rem;font-weight:500;color:var(--danger);}
+.cat-row{display:flex;align-items:center;gap:9px;}
+.cat-nm{font-size:.72rem;color:var(--text-2);min-width:88px;}
+.cat-bw{flex:1;height:4px;background:var(--surface-3);border-radius:2px;overflow:hidden;}
+.cat-bf{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold-d),var(--gold));}
+.cat-v{font-size:.64rem;font-family:var(--mono);color:var(--text-3);min-width:34px;text-align:right;}
+
+/* AI OUTPUT */
+.aiout{background:var(--surface-2);border:1px solid rgba(201,168,76,.14);border-radius:var(--rm);padding:14px 16px;font-size:.83rem;line-height:1.75;color:var(--text-2);white-space:pre-wrap;font-family:var(--body);position:relative;}
+.aiout::before{content:'AI';position:absolute;top:9px;right:12px;font-size:.52rem;font-family:var(--mono);letter-spacing:.14em;color:var(--gold-d);background:var(--gold-g);border:1px solid rgba(201,168,76,.14);padding:2px 6px;border-radius:4px;}
+.aiout.streaming{animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* HEALTH RINGS */
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .2s;}
+.rc:hover{border-color:rgba(201,168,76,.2);transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,.4);}
+.rw{position:relative;width:88px;height:88px;}
+.rs{transform:rotate(-90deg);}
+.rbg{fill:none;stroke:var(--surface-3);stroke-width:6;}
+.rp{fill:none;stroke-width:6;stroke-linecap:round;stroke-dasharray:239;stroke-dashoffset:239;transition:stroke-dashoffset 1.2s var(--ease);}
+.rl2{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.rv{font-family:var(--mono);font-size:.95rem;font-weight:500;line-height:1;}
+.ru{font-size:.55rem;color:var(--text-3);font-family:var(--mono);margin-top:1px;}
+.rname{font-size:.68rem;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);}
+.rgoal{font-size:.65rem;color:var(--text-4);}
+
+/* REMINDERS */
+.rem-r{display:flex;align-items:center;gap:11px;padding:11px 14px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--rm);transition:all .14s;}
+.rem-r:hover{border-color:rgba(201,168,76,.14);}
+.rem-ic{width:34px;height:34px;border-radius:var(--r);background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.rem-inf{flex:1;}.rem-t{font-size:.83rem;}.rem-tm{font-size:.66rem;font-family:var(--mono);color:var(--text-3);margin-top:1px;}
+.tog{width:36px;height:20px;border-radius:999px;background:var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:all .2s;}
+.tog.on{background:var(--gold);box-shadow:0 0 7px rgba(201,168,76,.28);}
+.tog::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:white;top:3px;left:3px;transition:left .2s var(--spring);}
+.tog.on::after{left:19px;}
+
+/* ACTIVITY BARS */
+.act-bars{display:flex;align-items:flex-end;gap:5px;height:56px;}
+.act-bar{flex:1;border-radius:3px 3px 0 0;background:var(--surface-3);border:1px solid var(--border);transition:height .8s var(--ease),background .2s;}
+.act-bar.today{background:linear-gradient(to top,var(--gold-d),var(--gold));border-color:rgba(201,168,76,.3);}
+.act-lbls{display:flex;justify-content:space-between;margin-top:4px;}
+.act-lbl{font-size:.58rem;color:var(--text-4);font-family:var(--mono);}
+
+/* DIVIDER */
+.dvd{display:flex;align-items:center;gap:10px;color:var(--text-3);font-size:.62rem;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;margin:4px 0;}
+.dvd::before,.dvd::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* STAGGER */
+.stag>*{animation:rup .38s var(--ease) both;}
+.stag>*:nth-child(1){animation-delay:.04s;}.stag>*:nth-child(2){animation-delay:.09s;}.stag>*:nth-child(3){animation-delay:.14s;}.stag>*:nth-child(4){animation-delay:.19s;}.stag>*:nth-child(5){animation-delay:.24s;}.stag>*:nth-child(6){animation-delay:.29s;}
+
+/* TOAST */
+#toasts{position:fixed;bottom:26px;right:26px;display:flex;flex-direction:column;gap:7px;z-index:999;}
+.toast{display:flex;align-items:center;gap:9px;padding:10px 15px;max-width:310px;background:var(--surface-3);border:1px solid var(--border);border-radius:var(--rm);font-size:.8rem;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.5);animation:tin .28s var(--spring) both;}
+.toast.ok{border-left:2px solid var(--gold);}.toast.er{border-left:2px solid var(--danger);}.toast.in{border-left:2px solid var(--info);}
+@keyframes tin{from{transform:translateX(110%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .panel{padding:22px 16px 44px;gap:18px;}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .ph-h{font-size:1.9rem;}
+  .chat-body{padding:18px 16px;}
+  .chat-ft{padding:10px 16px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- INLINE SVG SPRITES -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="i-task" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M16 2v4M8 2v4M3 10h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l10 7 10-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-fin" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-health" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo-g">
+      <svg class="logo-svg" viewBox="0 0 34 34" fill="none">
+        <path d="M17 2L31 9.5v15L17 32 3 24.5v-15L17 2z" stroke="rgba(201,168,76,.45)" stroke-width="1"/>
+        <path d="M17 6.5L28 12.5v11L17 29.5 6 23.5v-11L17 6.5z" fill="rgba(201,168,76,.05)" stroke="rgba(201,168,76,.25)" stroke-width=".5"/>
+        <circle cx="17" cy="17" r="4" fill="var(--gold)" opacity=".92"/>
+        <circle cx="17" cy="17" r="6.5" stroke="var(--gold)" stroke-width=".5" opacity=".28"/>
+      </svg>
+      <div class="logo-words">
+        <span class="logo-name">LifeAI</span>
+        <span class="logo-tag">Personal Command Centre</span>
+      </div>
+    </div>
+    <div class="top-pills">
+      <div class="pill"><div class="pip"></div>AI Active</div>
+      <div class="pill"><div class="pip g"></div><span id="tdate">—</span></div>
+    </div>
+    <div class="top-r">
+      <span id="tclock">—</span>
+      <div class="av">U</div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="s-sect">Overview</div>
+    <div class="nav-b on" onclick="nav('dashboard',this)"><span class="nav-ic"><svg width="16" height="16"><use href="#i-dash"/></svg></span>Dashboard</div>
+    <div class="s-sect">Daily Life</div>
+    <div class="nav-b" onclick="nav('tasks',this)"><span class="nav-ic"><svg width="16" height="16"><use href="#i-task"/></svg></span>Tasks<span class="nbadge" id="nb-t">4</span></div>
+    <div class="nav-b" onclick="nav('appointments',this)"><span class="nav-ic"><svg width="16" height="16"><use href="#i-cal"/></svg></span>Appointments</div>
+    <div class="nav-b" onclick="nav('email',this)"><span class="nav-ic"><svg width="16" height="16"><use href="#i-mail"/></svg></span>Email<span class="nbadge" id="nb-e">3</span></div>
+    <div class="s-sect">Intelligence</div>
+    <div class="nav-b" onclick="nav('chat',this)"><span class="nav-ic"><svg width="16" height="16"><use href="#i-chat"/></svg></span>AI Chat</div>
+    <div class="s-sect">Insights</div>
+    <div class="nav-b" onclick="nav('finance',this)"><span class="nav-ic"><svg width="16" height="16"><use href="#i-fin"/></svg></span>Finance</div>
+    <div class="nav-b" onclick="nav('health',this)"><span class="nav-ic"><svg width="16" height="16"><use href="#i-health"/></svg></span>Health</div>
+    <div class="sf">
+      <div class="sf-l">Today's Progress</div>
+      <div class="sf-r"><span class="sf-n">Tasks</span><div class="sf-bw"><div class="sf-bf" id="sf-t" style="width:25%"></div></div><span class="sf-v" id="sf-tv">1/4</span></div>
+      <div class="sf-r"><span class="sf-n">Steps</span><div class="sf-bw"><div class="sf-bf" style="width:62%;background:var(--em)"></div></div><span class="sf-v">62%</span></div>
+      <div class="sf-r"><span class="sf-n">Water</span><div class="sf-bw"><div class="sf-bf" style="width:70%;background:var(--info)"></div></div><span class="sf-v">1.4L</span></div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="panel on" id="panel-dashboard">
+      <div class="ph">
+        <div><div class="ph-eye">Command Centre</div><h1 class="ph-h">Good <em>morning</em></h1><p class="ph-sub" id="ph-date">Loading…</p></div>
+        <button class="btn btn-gold" onclick="planDay()"><svg width="13" height="13"><use href="#i-spark"/></svg>Plan My Day</button>
+      </div>
+      <div class="g4 stag" id="kpi-row">
+        <div class="kpi" data-n="①"><div class="kpi-top"><div class="kpi-ic"><svg width="15" height="15"><use href="#i-task"/></svg></div><span class="kpi-tr fl">Pending</span></div><div class="kpi-val" id="kv-tasks">4</div><div class="kpi-lbl">Tasks Today</div></div>
+        <div class="kpi" data-n="②"><div class="kpi-top"><div class="kpi-ic"><svg width="15" height="15"><use href="#i-cal"/></svg></div><span class="kpi-tr fl">Today</span></div><div class="kpi-val" id="kv-apts">2</div><div class="kpi-lbl">Appointments</div></div>
+        <div class="kpi" data-n="③"><div class="kpi-top"><div class="kpi-ic"><svg width="15" height="15"><use href="#i-mail"/></svg></div><span class="kpi-tr dn" id="kv-mt">3 unread</span></div><div class="kpi-val" id="kv-mails">3</div><div class="kpi-lbl">Emails</div></div>
+        <div class="kpi" data-n="④"><div class="kpi-top"><div class="kpi-ic"><svg width="15" height="15"><use href="#i-fin"/></svg></div><span class="kpi-tr dn">↑ 18%</span></div><div class="kpi-val">£142</div><div class="kpi-lbl">Spent This Week</div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="c-eye">AI Generated</div><div class="c-title">Today's Optimised Plan</div>
+          <div class="aiout" id="plan-out">Press <strong style="color:var(--gold)">Plan My Day</strong> to generate a smart, time-blocked schedule from your tasks and appointments.</div>
+        </div>
+        <div class="card"><div class="c-eye">Timeline</div><div class="c-title">Today's Agenda</div>
+          <div class="tl" id="tl">
+            <div class="tl-i"><span class="tl-t">09:00</span><div class="tl-dw"><div class="tl-d go"></div></div><div class="tl-b"><div class="tl-name">Morning standup with team</div><div class="tl-meta">30 min · Video call</div><span class="tl-tag">Work</span></div></div>
+            <div class="tl-i"><span class="tl-t">11:30</span><div class="tl-dw"><div class="tl-d bl"></div></div><div class="tl-b"><div class="tl-name">Review Q3 financial report</div><div class="tl-meta">60 min · High priority</div><span class="tl-tag">Finance</span></div></div>
+            <div class="tl-i"><span class="tl-t">13:00</span><div class="tl-dw"><div class="tl-d gr"></div></div><div class="tl-b"><div class="tl-name">Lunch &amp; recovery walk</div><div class="tl-meta">60 min · Health goal</div><span class="tl-tag">Health</span></div></div>
+            <div class="tl-i"><span class="tl-t">15:00</span><div class="tl-dw"><div class="tl-d rd"></div></div><div class="tl-b"><div class="tl-name">GP check-up appointment</div><div class="tl-meta">City Health Clinic · Bring prescription</div><span class="tl-tag">Health</span></div></div>
+            <div class="tl-i"><span class="tl-t">17:30</span><div class="tl-dw"><div class="tl-d go"></div></div><div class="tl-b"><div class="tl-name">Email triage &amp; inbox zero</div><div class="tl-meta">30 min</div><span class="tl-tag">Email</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TASKS ═══ -->
+    <div class="panel" id="panel-tasks">
+      <div class="ph"><div><div class="ph-eye">Task Management</div><h1 class="ph-h">Your <em>Tasks</em></h1><p class="ph-sub">Track, prioritise, and complete your to-dos</p></div></div>
+      <div class="card"><div class="c-eye">Add New</div>
+        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="fld" style="flex:3;min-width:190px;"><label>Task Description</label><input id="t-name" placeholder="What needs to be done?"></div>
+          <div class="fld" style="flex:1;min-width:120px;"><label>Priority</label><select id="t-prio"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🔵 Low</option></select></div>
+          <button class="btn btn-gold" onclick="addTask()"><svg width="13" height="13"><use href="#i-plus"/></svg>Add Task</button>
+        </div>
+      </div>
+      <div class="card"><div class="c-eye">Active</div><div id="task-list" style="display:flex;flex-direction:column;gap:7px;" class="stag"></div></div>
+    </div>
+
+    <!-- ═══ APPOINTMENTS ═══ -->
+    <div class="panel" id="panel-appointments">
+      <div class="ph">
+        <div><div class="ph-eye">Calendar</div><h1 class="ph-h"><em>Appointments</em></h1><p class="ph-sub">Schedule and manage your bookings</p></div>
+        <button class="btn btn-out" onclick="syncCal()"><svg width="13" height="13"><use href="#i-sync"/></svg>Sync Google Cal</button>
+      </div>
+      <div class="card"><div class="c-eye">Book New Appointment</div>
+        <div class="g2">
+          <div class="fld"><label>Title</label><input id="a-title" placeholder="e.g. GP Appointment"></div>
+          <div class="fld"><label>Date &amp; Time</label><input id="a-dt" type="datetime-local"></div>
+          <div class="fld"><label>Location</label><input id="a-loc" placeholder="e.g. City Health Clinic"></div>
+          <div class="fld"><label>Notes</label><input id="a-notes" placeholder="Any prep notes…"></div>
+        </div>
+        <div style="margin-top:14px;"><button class="btn btn-gold" onclick="bookApt()"><svg width="13" height="13"><use href="#i-cal"/></svg>Book &amp; Save</button></div>
+      </div>
+      <div class="card"><div class="c-eye">Upcoming</div><div id="apt-list" style="display:flex;flex-direction:column;gap:9px;" class="stag"></div></div>
+    </div>
+
+    <!-- ═══ EMAIL ═══ -->
+    <div class="panel" id="panel-email">
+      <div class="ph"><div><div class="ph-eye">Inbox</div><h1 class="ph-h">Email <em>Centre</em></h1><p class="ph-sub">AI-assisted inbox management and drafting</p></div></div>
+      <div class="g2">
+        <div class="card"><div class="c-eye">Inbox</div><div id="email-list" style="display:flex;flex-direction:column;gap:7px;" class="stag"></div></div>
+        <div class="card"><div class="c-eye">AI Email Drafter</div>
+          <div class="fld" style="margin-bottom:11px;"><label>Recipient</label><input id="e-to" placeholder="name@example.com"></div>
+          <div class="fld" style="margin-bottom:11px;"><label>Subject</label><input id="e-sub" placeholder="What's this about?"></div>
+          <div class="fld" style="margin-bottom:11px;"><label>Key Points to Cover</label><textarea id="e-pts" rows="4" placeholder="Describe what the email should say…"></textarea></div>
+          <div style="display:flex;gap:7px;">
+            <select id="e-tone" style="flex:1;"><option>Professional</option><option>Friendly</option><option>Formal</option><option>Concise</option></select>
+            <button class="btn btn-gold" onclick="draftEmail()" style="flex:2;"><svg width="13" height="13"><use href="#i-spark"/></svg>Generate Draft</button>
+          </div>
+          <div id="email-out" class="aiout" style="margin-top:14px;display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CHAT ═══ -->
+    <div class="panel" id="panel-chat">
+      <div class="chat-body" id="chat-msgs">
+        <div class="cm ai">
+          <div class="m-av">AI</div>
+          <div><div class="m-bub">Hello. I'm your LifeAI assistant — your intelligent command centre for everything that matters. I can plan your day, draft emails, analyse finances, track health goals, manage appointments, and hold a conversation about anything you need. How can I help you today?</div>
+          <div class="m-time" id="cwt">—</div></div>
+        </div>
+      </div>
+      <div class="typ-row" id="typing">
+        <div class="m-av" style="width:33px;height:33px;border-radius:50%;background:var(--gold-g);border:1px solid rgba(201,168,76,.22);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--gold);font-family:var(--mono);">AI</div>
+        <div class="typ-b"><div class="td"></div><div class="td"></div><div class="td"></div></div>
+      </div>
+      <div class="chat-ft">
+        <div class="chips">
+          <div class="chip" onclick="qs('Plan my day intelligently')">📅 Plan my day</div>
+          <div class="chip" onclick="qs('Give me a finance summary')">💰 Finance summary</div>
+          <div class="chip" onclick="qs('Draft a professional apology email')">✉️ Draft an email</div>
+          <div class="chip" onclick="qs('What health habits should I focus on?')">🏃 Health advice</div>
+          <div class="chip" onclick="qs('Help me prioritise my tasks for today')">✅ Prioritise tasks</div>
+          <div class="chip" onclick="qs('What are some good productivity techniques?')">⚡ Productivity tips</div>
+        </div>
+        <div class="ci-row">
+          <textarea id="cinput" placeholder="Ask me anything… plan my week, draft a message, analyse spending…" rows="1"></textarea>
+          <button class="sbtn" id="sbtn" onclick="sendChat()"><svg width="17" height="17"><use href="#i-send"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FINANCE ═══ -->
+    <div class="panel" id="panel-finance">
+      <div class="ph"><div><div class="ph-eye">Financial Overview</div><h1 class="ph-h">Finance <em>Insights</em></h1><p class="ph-sub">Track spending, manage budgets, get AI analysis</p></div></div>
+      <div class="g3 stag">
+        <div class="card"><div class="c-eye">Monthly Budget</div><div style="font-family:var(--mono);font-size:1.9rem;font-weight:500;margin:7px 0 13px;color:var(--text);">£2,400</div><div class="pb"><div class="pf" style="width:62%"></div></div><div class="p-lbls"><span>£1,488 spent</span><span>£912 left</span></div></div>
+        <div class="card"><div class="c-eye">This Week</div><div style="font-family:var(--mono);font-size:1.9rem;font-weight:500;margin:7px 0 5px;color:var(--danger);">−£142</div><div style="font-size:.72rem;color:var(--text-2);">vs last week <span style="color:var(--danger);font-family:var(--mono);">↑ 18%</span></div><div style="font-size:.68rem;color:var(--text-3);margin-top:5px;">Largest: Transport £89.50</div></div>
+        <div class="card"><div class="c-eye">Savings Rate</div><div style="font-family:var(--mono);font-size:1.9rem;font-weight:500;margin:7px 0 13px;color:var(--em);">23%</div><div class="pb"><div class="pf" style="width:23%;background:var(--em)"></div></div><div class="p-lbls"><span>£552 saved</span><span>Target: 25%</span></div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="c-eye">Log Expense</div>
+          <div class="fld" style="margin-bottom:9px;"><label>Description</label><input id="ex-d" placeholder="e.g. Tesco weekly shop"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;">
+            <div class="fld"><label>Amount (£)</label><input id="ex-a" type="number" placeholder="0.00"></div>
+            <div class="fld"><label>Category</label><select id="ex-c"><option>Food</option><option>Transport</option><option>Entertainment</option><option>Health</option><option>Shopping</option><option>Bills</option><option>Other</option></select></div>
+          </div>
+          <button class="btn btn-gold" onclick="addExp()" style="width:100%;margin-bottom:18px;"><svg width="13" height="13"><use href="#i-plus"/></svg>Log Expense</button>
+          <div class="dvd">AI Analysis</div>
+          <button class="btn btn-out" onclick="finSum()" style="width:100%;margin:10px 0;"><svg width="13" height="13"><use href="#i-spark"/></svg>Generate Finance Summary</button>
+          <div id="fin-out" class="aiout" style="display:none;"></div>
+        </div>
+        <div class="card">
+          <div class="c-eye">Recent Transactions</div>
+          <div id="exp-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;" class="stag"></div>
+          <div class="dvd" style="margin-bottom:13px;">By Category</div>
+          <div id="cat-bd" style="display:flex;flex-direction:column;gap:9px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HEALTH ═══ -->
+    <div class="panel" id="panel-health">
+      <div class="ph"><div><div class="ph-eye">Wellbeing</div><h1 class="ph-h">Health <em>Centre</em></h1><p class="ph-sub">Daily goals, reminders, and activity tracking</p></div></div>
+      <div class="g4 stag">
+        <div class="rc"><div class="rw"><svg class="rs" width="88" height="88" viewBox="0 0 88 88"><circle class="rbg" cx="44" cy="44" r="38"/><circle class="rp" id="r-st" cx="44" cy="44" r="38" stroke="var(--gold)"/></svg><div class="rl2"><span class="rv" style="color:var(--gold)">6,240</span><span class="ru">steps</span></div></div><div class="rname">Steps</div><div class="rgoal">Goal: 10,000</div></div>
+        <div class="rc"><div class="rw"><svg class="rs" width="88" height="88" viewBox="0 0 88 88"><circle class="rbg" cx="44" cy="44" r="38"/><circle class="rp" id="r-wt" cx="44" cy="44" r="38" stroke="var(--info)"/></svg><div class="rl2"><span class="rv" style="color:var(--info)">1.4</span><span class="ru">litres</span></div></div><div class="rname">Hydration</div><div class="rgoal">Goal: 2.0L</div></div>
+        <div class="rc"><div class="rw"><svg class="rs" width="88" height="88" viewBox="0 0 88 88"><circle class="rbg" cx="44" cy="44" r="38"/><circle class="rp" id="r-sl" cx="44" cy="44" r="38" stroke="var(--warn)"/></svg><div class="rl2"><span class="rv" style="color:var(--warn)">6.5</span><span class="ru">hours</span></div></div><div class="rname">Sleep</div><div class="rgoal">Goal: 8h</div></div>
+        <div class="rc"><div class="rw"><svg class="rs" width="88" height="88" viewBox="0 0 88 88"><circle class="rbg" cx="44" cy="44" r="38"/><circle class="rp" id="r-mn" cx="44" cy="44" r="38" stroke="#c084fc"/></svg><div class="rl2"><span class="rv" style="color:#c084fc">10</span><span class="ru">min</span></div></div><div class="rname">Mindfulness</div><div class="rgoal">Goal: 20 min</div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="c-eye">Active Reminders</div><div id="rem-list" style="display:flex;flex-direction:column;gap:7px;" class="stag"></div></div>
+        <div class="card">
+          <div class="c-eye">Add Reminder</div>
+          <div class="fld" style="margin-bottom:11px;"><label>Reminder Text</label><input id="rem-t" placeholder="e.g. Take vitamin D supplement"></div>
+          <div style="display:flex;gap:9px;margin-bottom:13px;">
+            <div class="fld" style="flex:1;"><label>Time</label><input id="rem-tm" type="time" value="08:00"></div>
+            <div class="fld" style="flex:1;"><label>Frequency</label><select id="rem-f"><option>Daily</option><option>Weekdays</option><option>Weekly</option><option>Once</option></select></div>
+          </div>
+          <button class="btn btn-gold" onclick="addRem()" style="width:100%;margin-bottom:22px;"><svg width="13" height="13"><use href="#i-bell"/></svg>Set Reminder</button>
+          <div class="dvd" style="margin-bottom:13px;">Weekly Activity</div>
+          <div class="act-bars" id="act-bars"></div>
+          <div class="act-lbls" id="act-lbls"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+<div id="toasts"></div>
+
+<script>
+// ═══════ CONFIG ═══════
+const API = 'https://your-backend.onrender.com'; // ← Replace with your Render URL
+
+// ═══════ STATE ═══════
+const S = {
+  tasks:[
+    {id:1,name:'Review project proposal',prio:'high',done:false},
+    {id:2,name:'Pay electricity bill',prio:'medium',done:false},
+    {id:3,name:'Call dentist to rebook',prio:'high',done:true},
+    {id:4,name:'Buy groceries',prio:'low',done:false},
+  ],
+  apts:[
+    {id:1,title:'GP Check-up',dt:'2026-03-18T15:00',loc:'City Health Clinic',notes:'Bring prescription'},
+    {id:2,title:'Quarterly Review',dt:'2026-03-20T10:00',loc:'Office · Room B',notes:'Prepare slides'},
+  ],
+  exps:[
+    {id:1,desc:'Tesco weekly shop',amt:48.60,cat:'Food',ico:'🛒'},
+    {id:2,desc:'Monthly train pass',amt:89.50,cat:'Transport',ico:'🚂'},
+    {id:3,desc:'Cinema tickets',amt:22.00,cat:'Entertainment',ico:'🎬'},
+    {id:4,desc:'Netflix',amt:10.99,cat:'Entertainment',ico:'📺'},
+    {id:5,desc:'Boots pharmacy',amt:14.30,cat:'Health',ico:'💊'},
+  ],
+  emails:[
+    {id:1,from:'Sarah Mitchell',subj:'Project deadline update',prev:'Hi, just confirming the new deadline for the project…',time:'09:14',ur:true},
+    {id:2,from:'HMRC',subj:'Self Assessment reminder',prev:'Your self assessment return is due on 31 January…',time:'08:30',ur:true},
+    {id:3,from:'Dr. Patel',subj:'Appointment confirmation',prev:'Confirming your appointment Thursday at 3pm at City…',time:'07:52',ur:true},
+    {id:4,from:'Amazon',subj:'Your order has been dispatched',prev:'Great news! Order #ABC123 is on its way to you…',time:'Yesterday',ur:false},
+  ],
+  rems:[
+    {id:1,txt:'Morning medication',tm:'08:00',on:true},
+    {id:2,txt:'Drink water',tm:'10:00',on:true},
+    {id:3,txt:'Lunchtime walk',tm:'13:00',on:true},
+    {id:4,txt:'Afternoon stretch',tm:'15:30',on:false},
+    {id:5,txt:'Evening mindfulness',tm:'21:00',on:true},
+  ],
+  hist:[],
+};
+
+// ═══════ CLOCK ═══════
+function tick(){document.getElementById('tclock').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function initDate(){
+  const n=new Date();
+  document.getElementById('tdate').textContent=n.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('ph-date').textContent=n.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('cwt').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tick,1000);tick();initDate();
+
+// ═══════ NAV ═══════
+function nav(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-b').forEach(b=>b.classList.remove('on'));
+  document.getElementById('panel-'+id).classList.add('on');
+  if(el)el.classList.add('on');
+}
+
+// ═══════ TOAST ═══════
+function toast(m,t='ok'){
+  const el=document.createElement('div');
+  el.className='toast '+t; el.textContent=m;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>{el.style.transition='all .28s';el.style.opacity='0';el.style.transform='translateX(110%)';setTimeout(()=>el.remove(),300);},3400);
+}
+
+// ═══════ API ═══════
+async function post(ep,body){
+  try{const r=await fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
+  catch(e){return{_e:true,m:e.message};}
+}
+
+// ═══════ TASKS ═══════
+function renderTasks(){
+  const el=document.getElementById('task-list');el.innerHTML='';
+  S.tasks.forEach(t=>{
+    const d=document.createElement('div');
+    d.className='t-row p'+t.prio[0]+' '+(t.done?'done':'');
+    d.innerHTML=`<div class="t-chk ${t.done?'on':''}" onclick="togT(${t.id})">${t.done?'<svg width="9" height="9"><use href="#i-check"/></svg>':''}</div><span class="t-lbl">${t.name}</span><span class="t-p ${t.prio}">${t.prio}</span><span class="t-del" onclick="delT(${t.id})" title="Remove">✕</span>`;
+    el.appendChild(d);
+  });
+  const p=S.tasks.filter(t=>!t.done).length;
+  ['nb-t','kv-tasks'].forEach(i=>{const e=document.getElementById(i);if(e)e.textContent=p;});
+  const done=S.tasks.filter(t=>t.done).length,tot=S.tasks.length;
+  const sfb=document.getElementById('sf-t');if(sfb)sfb.style.width=Math.round(done/Math.max(tot,1)*100)+'%';
+  const sfv=document.getElementById('sf-tv');if(sfv)sfv.textContent=done+'/'+tot;
+}
+function togT(id){const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;renderTasks();}}
+function delT(id){S.tasks=S.tasks.filter(x=>x.id!==id);renderTasks();toast('Task removed');}
+function addTask(){
+  const n=document.getElementById('t-name').value.trim(),p=document.getElementById('t-prio').value;
+  if(!n){toast('Enter a task name','er');return;}
+  S.tasks.unshift({id:Date.now(),name:n,prio:p,done:false});
+  document.getElementById('t-name').value='';renderTasks();toast('Task added ✓');
+}
+
+// ═══════ APPOINTMENTS ═══════
+function renderApts(){
+  const el=document.getElementById('apt-list');el.innerHTML='';
+  S.apts.forEach(a=>{
+    const dt=new Date(a.dt),row=document.createElement('div');
+    row.className='a-row';
+    row.innerHTML=`<div class="a-cal"><div class="a-num">${dt.getDate()}</div><div class="a-mo">${dt.toLocaleString('en-GB',{month:'short'})}</div></div><div class="a-inf"><div class="a-name">${a.title}</div><div class="a-meta"><div class="a-mi"><svg width="11" height="11"><use href="#i-clock"/></svg>${dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>${a.loc?`<div class="a-mi"><svg width="11" height="11"><use href="#i-pin"/></svg>${a.loc}</div>`:''}</div></div>`;
+    el.appendChild(row);
+  });
+  const kv=document.getElementById('kv-apts');if(kv)kv.textContent=S.apts.length;
+}
+async function bookApt(){
+  const title=document.getElementById('a-title').value.trim(),dt=document.getElementById('a-dt').value,loc=document.getElementById('a-loc').value.trim(),notes=document.getElementById('a-notes').value.trim();
+  if(!title||!dt){toast('Title and date/time required','er');return;}
+  S.apts.push({id:Date.now(),title,dt,loc,notes});renderApts();
+  const r=await post('/appointments',{title,datetime:dt,location:loc,notes});
+  toast(r._e?'Saved locally (backend offline)':'Appointment booked! 📅');
+  ['a-title','a-dt','a-loc','a-notes'].forEach(id=>document.getElementById(id).value='');
+}
+function syncCal(){toast('Syncing Google Calendar…','in');setTimeout(()=>toast('Calendar synced ✓'),1800);}
+
+// ═══════ EMAIL ═══════
+function renderEmails(){
+  const el=document.getElementById('email-list');el.innerHTML='';
+  S.emails.forEach(e=>{
+    const row=document.createElement('div');row.className='e-row'+(e.ur?' ur':'');
+    row.innerHTML=`<div class="e-time">${e.time}</div><div class="e-from">${e.from}</div><div class="e-sub">${e.subj}</div><div class="e-prev">${e.prev}</div>`;
+    row.onclick=()=>{e.ur=false;renderEmails();updMailBadge();};
+    el.appendChild(row);
+  });
+  updMailBadge();
+}
+function updMailBadge(){
+  const u=S.emails.filter(e=>e.ur).length;
+  ['nb-e','kv-mails'].forEach(i=>{const el=document.getElementById(i);if(el)el.textContent=u;});
+  const mt=document.getElementById('kv-mt');if(mt)mt.textContent=u+' unread';
+}
+async function draftEmail(){
+  const to=document.getElementById('e-to').value.trim(),sub=document.getElementById('e-sub').value.trim(),pts=document.getElementById('e-pts').value.trim(),tone=document.getElementById('e-tone').value;
+  if(!pts){toast('Describe what the email should say','er');return;}
+  const out=document.getElementById('email-out');out.style.display='block';out.textContent='Composing…';out.classList.add('streaming');
+  const r=await post('/draft-email',{to,subject:sub,points:pts,tone});
+  out.classList.remove('streaming');
+  out.textContent=r._e?`Subject: ${sub||'Re: Your message'}\n\nDear ${to||'recipient'},\n\nI hope this message finds you well.\n\n${pts}\n\nPlease let me know if you have any questions.\n\nKind regards,\n[Your Name]`:r.draft;
+  toast('Email draft ready ✓');
+}
+
+// ═══════ FINANCE ═══════
+function renderExps(){
+  const el=document.getElementById('exp-list');el.innerHTML='';
+  [...S.exps].reverse().slice(0,6).forEach(e=>{
+    const row=document.createElement('div');row.className='ex-r';
+    row.innerHTML=`<div class="ex-ic">${e.ico||'💳'}</div><div class="ex-inf"><div class="ex-n">${e.desc}</div><div class="ex-c">${e.cat}</div></div><div class="ex-a">−£${parseFloat(e.amt).toFixed(2)}</div>`;
+    el.appendChild(row);
+  });
+  renderCats();
+}
+function renderCats(){
+  const el=document.getElementById('cat-bd');if(!el)return;
+  const bc={};S.exps.forEach(e=>{bc[e.cat]=(bc[e.cat]||0)+parseFloat(e.amt);});
+  const mx=Math.max(...Object.values(bc));el.innerHTML='';
+  Object.entries(bc).sort((a,b)=>b[1]-a[1]).forEach(([c,v])=>{
+    const row=document.createElement('div');row.className='cat-row';
+    row.innerHTML=`<span class="cat-nm">${c}</span><div class="cat-bw"><div class="cat-bf" style="width:${Math.round(v/mx*100)}%"></div></div><span class="cat-v">£${v.toFixed(0)}</span>`;
+    el.appendChild(row);
+  });
+}
+function addExp(){
+  const d=document.getElementById('ex-d').value.trim(),a=parseFloat(document.getElementById('ex-a').value),c=document.getElementById('ex-c').value;
+  const ics={Food:'🛒',Transport:'🚂',Entertainment:'🎬',Health:'💊',Shopping:'🛍️',Bills:'🏠',Other:'💳'};
+  if(!d||isNaN(a)||a<=0){toast('Fill in description and amount','er');return;}
+  S.exps.push({id:Date.now(),desc:d,amt:a,cat:c,ico:ics[c]||'💳'});
+  renderExps();document.getElementById('ex-d').value='';document.getElementById('ex-a').value='';toast('Expense logged ✓');
+}
+async function finSum(){
+  const out=document.getElementById('fin-out');out.style.display='block';out.textContent='Analysing your finances…';out.classList.add('streaming');
+  const r=await post('/finance-summary',{expenses:S.exps});
+  out.classList.remove('streaming');
+  if(r._e){const tot=S.exps.reduce((s,e)=>s+parseFloat(e.amt),0);const top=[...S.exps].sort((a,b)=>b.amt-a.amt)[0];out.textContent=`📊 Finance Summary\n\nTotal tracked: £${tot.toFixed(2)}\nLargest expense: ${top.desc} (£${top.amt})\n\nYou're spending most on ${top.cat}. Consider reviewing subscriptions and setting a weekly cap. Your savings rate of 23% is close to the 25% target — keep it up!`;}
+  else out.textContent=r.summary;
+}
+
+// ═══════ HEALTH ═══════
+function animateRings(){
+  const C=239;
+  [{id:'r-st',p:.624},{id:'r-wt',p:.70},{id:'r-sl',p:.813},{id:'r-mn',p:.50}].forEach(({id,p})=>{
+    const el=document.getElementById(id);if(el)setTimeout(()=>{el.style.strokeDashoffset=C*(1-p);},400);
+  });
+}
+function renderRems(){
+  const el=document.getElementById('rem-list');el.innerHTML='';
+  const mp={medication:'💊',water:'💧',walk:'🚶',stretch:'🧘',mindfulness:'🧘',morning:'🌅',evening:'🌙',vitamin:'🌿',exercise:'🏋️'};
+  S.rems.forEach(r=>{
+    const k=Object.keys(mp).find(k=>r.txt.toLowerCase().includes(k)),ico=mp[k]||'🔔';
+    const row=document.createElement('div');row.className='rem-r';
+    row.innerHTML=`<div class="rem-ic">${ico}</div><div class="rem-inf"><div class="rem-t">${r.txt}</div><div class="rem-tm">${r.tm} · Daily</div></div><div class="tog ${r.on?'on':''}" onclick="togR(${r.id})"></div>`;
+    el.appendChild(row);
+  });
+}
+function togR(id){const r=S.rems.find(x=>x.id===id);if(r){r.on=!r.on;renderRems();}}
+function addRem(){
+  const t=document.getElementById('rem-t').value.trim(),tm=document.getElementById('rem-tm').value;
+  if(!t){toast('Enter reminder text','er');return;}
+  S.rems.push({id:Date.now(),txt:t,tm,on:true});renderRems();document.getElementById('rem-t').value='';toast('Reminder set 🔔');
+}
+function renderActBars(){
+  const el=document.getElementById('act-bars'),ll=document.getElementById('act-lbls');
+  if(!el)return;
+  const data=[72,55,88,64,91,45,62],days=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  el.innerHTML='';ll.innerHTML='';
+  data.forEach((v,i)=>{
+    const b=document.createElement('div');b.className='act-bar'+(i===6?' today':'');b.style.height='3px';el.appendChild(b);
+    setTimeout(()=>{b.style.height=Math.round(v/100*56)+'px';},280+i*55);
+    const l=document.createElement('span');l.className='act-lbl';l.textContent=days[i];ll.appendChild(l);
+  });
+}
+
+// ═══════ DAY PLANNER ═══════
+async function planDay(){
+  const out=document.getElementById('plan-out');out.textContent='Planning your day…';out.classList.add('streaming');
+  const r=await post('/plan-day',{tasks:S.tasks.filter(t=>!t.done).map(t=>({name:t.name,priority:t.prio})),appointments:S.apts.map(a=>({title:a.title,datetime:a.dt}))});
+  out.classList.remove('streaming');
+  out.textContent=r._e?`🌅 Here's your optimised day:\n\n08:30 — Deep work: Review project proposal (high priority)\n10:00 — Quick break + water 💧\n11:00 — Pay electricity bill (10 min)\n12:00 — Email triage\n13:00 — Lunch + 20-min walk 🚶\n15:00 — GP check-up appointment\n16:30 — Review Q3 financials\n17:30 — Wind down, prep tomorrow\n\nFocus on the high-priority items first thing — you've got this! 💪`:r.plan;
+  toast('Day plan ready ✓');
+}
+
+// ═══════ CHAT ═══════
+function appendMsg(role,text){
+  const c=document.getElementById('chat-msgs'),now=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const div=document.createElement('div');div.className='cm '+role;
+  div.innerHTML=`<div class="m-av">${role==='ai'?'AI':'U'}</div><div><div class="m-bub">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div><div class="m-time">${now}</div></div>`;
+  c.appendChild(div);c.scrollTop=c.scrollHeight;
+}
+function setTyp(v){document.getElementById('typing').classList.toggle('on',v);document.getElementById('chat-msgs').scrollTop=99999;}
+async function sendChat(){
+  const inp=document.getElementById('cinput'),txt=inp.value.trim();if(!txt)return;
+  inp.value='';inp.style.height='auto';appendMsg('user',txt);S.hist.push({role:'user',content:txt});
+  setTyp(true);document.getElementById('sbtn').disabled=true;
+  const r=await post('/chat',{message:txt,history:S.hist.slice(-10)});
+  setTyp(false);document.getElementById('sbtn').disabled=false;
+  const rep=r._e?`I can't reach the server right now. Please check your backend URL in the script config.\n\n(Error: ${r.m})`:r.reply;
+  appendMsg('ai',rep);S.hist.push({role:'assistant',content:rep});
+}
+function qs(t){document.getElementById('cinput').value=t;sendChat();}
+
+// ═══════ INIT ═══════
+document.addEventListener('DOMContentLoaded',()=>{
+  renderTasks();renderApts();renderEmails();renderExps();renderRems();renderActBars();
+  setTimeout(animateRings,600);
+  const ta=document.getElementById('cinput');
+  ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';});
+  ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}});
+});
+</script>
+</body>
+</html>
