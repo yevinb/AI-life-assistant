@@ -3,491 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LifeAI — Your Intelligent Personal Command Centre</title>
+  <title>LifeAI — Your Intelligent Personal Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* === ROOT VARIABLES === */
+    /* Simple home page styles only - no dashboard styles */
     :root {
-      --void:#080a08; --ink:#0e1210; --surface:#131814; --surface-2:#181f19; --surface-3:#1e2820;
-      --border:#243020; --border-2:#1a2218;
-      --gold:#c9a84c; --gold-b:#e8c96a; --gold-d:#8a6e2e; --gold-g:rgba(201,168,76,.10); --gold-g2:rgba(201,168,76,.04);
-      --em:#4ade80; --em-d:#166534; --em-g:rgba(74,222,128,.08);
-      --danger:#f87171; --warn:#fbbf24; --info:#93c5fd;
-      --text:#e8ede4; --text-2:#8a9e82; --text-3:#3d5038; --text-4:#253020;
-      --display:'Cormorant Garamond',Georgia,serif;
+      --void:#080a08; --ink:#0e1210; --surface:#131814; --surface-2:#181f19;
+      --border:#243020; --gold:#c9a84c; --gold-d:#8a6e2e;
+      --text:#e8ede4; --text-2:#8a9e82; --text-3:#3d5038;
+      --display:'Cormorant Garamond',serif;
       --body:'Outfit',sans-serif; --mono:'Fira Code',monospace;
-      --r:6px; --rm:12px; --rl:18px; --rx:24px;
-      --ease:cubic-bezier(.4,0,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
     }
 
-    /* === GLOBAL STYLES === */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
       font-family: var(--body);
       background: var(--void);
       color: var(--text);
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
+      line-height: 1.6;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: 
-        radial-gradient(ellipse 60% 40% at 15% 0%, rgba(201,168,76,.06) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 60% at 85% 100%, rgba(74,222,128,.04) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    /* === SCROLLBAR === */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--gold-d); }
-
-    /* === NAVBAR === */
+    /* Navigation */
     .navbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 20px 0;
+      align-items: center;
+      padding: 20px 40px;
       border-bottom: 1px solid var(--border);
-      background: rgba(8,10,8,.88);
-      backdrop-filter: blur(20px) saturate(1.5);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: rgba(8,10,8,.95);
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 13px;
-    }
-
-    .logo-svg {
-      width: 40px;
-      height: 40px;
-    }
-
-    .logo-text {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .logo-name {
+      gap: 10px;
       font-family: var(--display);
-      font-size: 1.4rem;
-      font-weight: 400;
-      letter-spacing: .06em;
-      color: var(--text);
-    }
-
-    .logo-tag {
-      font-size: .68rem;
-      font-family: var(--mono);
-      letter-spacing: .2em;
-      text-transform: uppercase;
-      color: var(--text-3);
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 32px;
+      font-size: 1.5rem;
     }
 
     .nav-links a {
       color: var(--text-2);
       text-decoration: none;
-      font-size: .9rem;
-      font-weight: 400;
-      transition: color .2s var(--ease);
-      position: relative;
+      margin: 0 15px;
     }
 
-    .nav-links a:hover {
-      color: var(--gold);
-    }
-
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -4px;
-      left: 0;
-      width: 0;
-      height: 1px;
-      background: var(--gold);
-      transition: width .2s var(--ease);
-    }
-
-    .nav-links a:hover::after {
-      width: 100%;
-    }
-
-    .auth-buttons {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    /* === BUTTONS === */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 9px 18px;
-      border-radius: var(--rm);
-      font-family: var(--body);
-      font-size: .85rem;
-      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
       cursor: pointer;
-      transition: all .17s var(--ease);
-      border: 1px solid transparent;
-      white-space: nowrap;
-      text-decoration: none;
+      font-family: var(--body);
     }
 
     .btn-gold {
       background: linear-gradient(135deg, var(--gold-d), var(--gold));
       color: var(--void);
-      box-shadow: 0 2px 10px rgba(201,168,76,.18);
-    }
-
-    .btn-gold:hover {
-      background: linear-gradient(135deg, var(--gold), var(--gold-b));
-      box-shadow: 0 4px 18px rgba(201,168,76,.32);
-      transform: translateY(-1px);
     }
 
     .btn-out {
       background: transparent;
-      color: var(--text-2);
-      border-color: var(--border);
-    }
-
-    .btn-out:hover {
-      background: var(--surface-2);
+      border: 1px solid var(--border);
       color: var(--text);
-      border-color: rgba(201,168,76,.28);
     }
 
-    /* === HERO SECTION === */
+    /* Hero Section */
     .hero {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      padding: 80px 0;
-      align-items: center;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: .75rem;
-      font-family: var(--mono);
-      color: var(--gold);
-      margin-bottom: 24px;
-    }
-
-    .pip {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--em);
-      box-shadow: 0 0 8px var(--em);
-      animation: breathe 3s ease-in-out infinite;
-    }
-
-    .pip.gold {
-      background: var(--gold);
-      box-shadow: 0 0 8px var(--gold);
-    }
-
-    @keyframes breathe {
-      0%,100% { opacity: 1; transform: scale(1); }
-      50% { opacity: .5; transform: scale(.7); }
-    }
-
-    .hero-title {
-      font-family: var(--display);
-      font-size: 3.8rem;
-      font-weight: 300;
-      letter-spacing: -.02em;
-      line-height: 1.1;
-      margin-bottom: 24px;
-    }
-
-    .hero-title em {
-      font-style: italic;
-      color: var(--gold);
-    }
-
-    .hero-subtitle {
-      font-size: 1.1rem;
-      color: var(--text-2);
-      margin-bottom: 32px;
-      max-width: 500px;
-    }
-
-    .hero-stats {
-      display: flex;
-      gap: 32px;
-      margin-top: 40px;
-    }
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .stat-number {
-      font-family: var(--mono);
-      font-size: 1.8rem;
-      font-weight: 500;
-      color: var(--gold);
-    }
-
-    .stat-label {
-      font-size: .8rem;
-      color: var(--text-3);
-      font-family: var(--mono);
-    }
-
-    .hero-visual {
-      position: relative;
-    }
-
-    .hero-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--rl);
-      padding: 32px;
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-
-    .hero-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 120px;
-      height: 120px;
-      background: radial-gradient(circle at top right, rgba(201,168,76,.1), transparent 70%);
-    }
-
-    .mini-dashboard {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-top: 20px;
-    }
-
-    .mini-card {
-      background: var(--surface-2);
-      border: 1px solid var(--border-2);
-      border-radius: var(--rm);
-      padding: 16px;
-    }
-
-    .mini-card .label {
-      font-size: .7rem;
-      color: var(--text-3);
-      font-family: var(--mono);
-      margin-bottom: 8px;
-    }
-
-    .mini-card .value {
-      font-size: 1.2rem;
-      font-weight: 500;
-      color: var(--text);
-    }
-
-    .progress-bar {
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--gold);
-      border-radius: 2px;
-    }
-
-    /* === FEATURES SECTION === */
-    .section-title {
+      max-width: 1200px;
+      margin: 60px auto;
+      padding: 0 20px;
       text-align: center;
+    }
+
+    .hero h1 {
       font-family: var(--display);
-      font-size: 2.8rem;
+      font-size: 4rem;
       font-weight: 300;
-      margin-bottom: 60px;
+      margin-bottom: 20px;
     }
 
-    .section-title em {
-      font-style: italic;
+    .hero h1 em {
       color: var(--gold);
+      font-style: italic;
     }
 
-    .features-grid {
+    .hero p {
+      color: var(--text-2);
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+
+    /* Features Grid */
+    .features {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-bottom: 80px;
+      gap: 30px;
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
     }
 
     .feature-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--rl);
-      padding: 32px 24px;
-      transition: all .2s var(--ease);
-      position: relative;
-      overflow: hidden;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
     }
 
-    .feature-card:hover {
-      border-color: rgba(201,168,76,.2);
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(0,0,0,.5);
-    }
-
-    .feature-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 60px;
-      height: 60px;
-      background: radial-gradient(circle at top right, rgba(201,168,76,.05), transparent 70%);
-    }
-
-    .feature-icon {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 24px;
+    .feature-card h3 {
+      margin: 15px 0 10px;
       color: var(--gold);
     }
 
-    .feature-title {
-      font-size: 1.3rem;
-      font-weight: 500;
-      margin-bottom: 12px;
-    }
-
-    .feature-desc {
+    .feature-card p {
       color: var(--text-2);
-      font-size: .9rem;
-      line-height: 1.6;
     }
 
-    /* === LOGIN MODAL === */
+    /* Modal */
     .modal-overlay {
       display: none;
       position: fixed;
-      inset: 0;
-      background: rgba(8,10,8,.95);
-      backdrop-filter: blur(10px);
-      z-index: 1000;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
       align-items: center;
       justify-content: center;
-      opacity: 0;
-      transition: opacity .3s var(--ease);
     }
 
     .modal-overlay.active {
       display: flex;
-      opacity: 1;
     }
 
     .modal {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--rl);
-      width: 90%;
-      max-width: 440px;
+      border-radius: 12px;
       padding: 40px;
-      position: relative;
-      transform: translateY(20px);
-      transition: transform .3s var(--spring);
+      width: 90%;
+      max-width: 400px;
     }
 
-    .modal-overlay.active .modal {
-      transform: translateY(0);
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      color: var(--text-3);
-      font-size: 1.5rem;
-      cursor: pointer;
-      transition: color .2s;
-    }
-
-    .modal-close:hover {
-      color: var(--gold);
-    }
-
-    .modal-header {
+    .modal h2 {
       text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .modal-title {
-      font-family: var(--display);
-      font-size: 2rem;
-      font-weight: 300;
-      margin-bottom: 8px;
-    }
-
-    .modal-title em {
-      font-style: italic;
-      color: var(--gold);
-    }
-
-    .modal-subtitle {
-      color: var(--text-2);
-      font-size: .9rem;
+      margin-bottom: 30px;
     }
 
     .form-group {
@@ -496,604 +160,165 @@
 
     .form-group label {
       display: block;
-      font-size: .75rem;
-      font-family: var(--mono);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
+      color: var(--text-2);
     }
 
     .form-group input {
       width: 100%;
+      padding: 10px;
       background: var(--surface-2);
       border: 1px solid var(--border);
-      border-radius: var(--rm);
+      border-radius: 6px;
       color: var(--text);
-      padding: 12px 16px;
-      font-size: .9rem;
-      transition: all .15s;
-      outline: none;
     }
 
-    .form-group input:focus {
-      border-color: rgba(201,168,76,.38);
-      box-shadow: 0 0 0 3px rgba(201,168,76,.06);
-      background: var(--surface-3);
-    }
-
-    .form-options {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-
-    .checkbox {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .switch-link {
+      text-align: center;
+      margin-top: 20px;
       color: var(--text-2);
-      font-size: .85rem;
+    }
+
+    .switch-link a {
+      color: var(--gold);
       cursor: pointer;
-    }
-
-    .checkbox input {
-      width: auto;
-    }
-
-    .forgot-link {
-      color: var(--gold);
       text-decoration: none;
-      font-size: .85rem;
     }
 
-    .forgot-link:hover {
-      text-decoration: underline;
-    }
-
-    .modal-footer {
-      text-align: center;
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-      color: var(--text-2);
-      font-size: .85rem;
-    }
-
-    .modal-footer a {
-      color: var(--gold);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .modal-footer a:hover {
-      text-decoration: underline;
-    }
-
-    /* === TESTIMONIALS === */
-    .testimonials {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-      margin: 60px 0;
-    }
-
-    .testimonial {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--rl);
-      padding: 32px;
-    }
-
-    .testimonial-text {
-      font-size: 1rem;
-      line-height: 1.7;
-      color: var(--text-2);
-      margin-bottom: 24px;
-      font-style: italic;
-    }
-
-    .testimonial-author {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .author-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--gold-g);
-      border: 1px solid rgba(201,168,76,.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--gold);
-      font-weight: 600;
-    }
-
-    .author-info {
-      flex: 1;
-    }
-
-    .author-name {
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
-
-    .author-title {
-      font-size: .75rem;
-      color: var(--text-3);
-      font-family: var(--mono);
-    }
-
-    /* === CTA SECTION === */
-    .cta-section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--rl);
-      padding: 64px;
-      text-align: center;
-      margin: 80px 0;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .cta-section::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(201,168,76,.03), transparent 70%);
-      animation: rotate 30s linear infinite;
-    }
-
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .cta-title {
-      font-family: var(--display);
-      font-size: 2.8rem;
-      font-weight: 300;
-      margin-bottom: 24px;
-      position: relative;
-    }
-
-    .cta-buttons {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      position: relative;
-    }
-
-    /* === FOOTER === */
+    /* Footer */
     .footer {
-      border-top: 1px solid var(--border);
-      padding: 40px 0;
-      margin-top: 60px;
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 40px;
-    }
-
-    .footer-brand p {
-      color: var(--text-2);
-      font-size: .85rem;
-      margin-top: 16px;
-      line-height: 1.6;
-    }
-
-    .footer-links h4 {
-      font-size: .85rem;
-      font-family: var(--mono);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin-bottom: 16px;
-    }
-
-    .footer-links a {
-      display: block;
-      color: var(--text-2);
-      text-decoration: none;
-      font-size: .85rem;
-      margin-bottom: 10px;
-      transition: color .2s;
-    }
-
-    .footer-links a:hover {
-      color: var(--gold);
-    }
-
-    .footer-bottom {
-      margin-top: 40px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
       text-align: center;
+      padding: 40px;
+      border-top: 1px solid var(--border);
       color: var(--text-3);
-      font-size: .8rem;
-    }
-
-    /* === LOADING SCREEN === */
-    .loading-screen {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: var(--void);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .loading-screen.active {
-      display: flex;
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 2px solid var(--border);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* === RESPONSIVE === */
-    @media (max-width: 1024px) {
-      .hero-title { font-size: 3rem; }
-      .features-grid { grid-template-columns: repeat(2, 1fr); }
-      .footer-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 768px) {
-      .hero { grid-template-columns: 1fr; text-align: center; }
-      .hero-subtitle { margin-left: auto; margin-right: auto; }
-      .hero-stats { justify-content: center; }
-      .nav-links { display: none; }
-      .features-grid { grid-template-columns: 1fr; }
-      .testimonials { grid-template-columns: 1fr; }
-      .cta-section { padding: 40px 24px; }
-      .cta-title { font-size: 2rem; }
     }
   </style>
 </head>
 <body>
-  <!-- LOADING SCREEN -->
-  <div class="loading-screen" id="loading">
-    <div class="spinner"></div>
-    <div style="color: var(--gold); font-family: var(--mono);">Loading LifeAI...</div>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 34 34">
+        <circle cx="17" cy="17" r="4" fill="var(--gold)"/>
+      </svg>
+      <span>LifeAI</span>
+    </div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">Features</a>
+      <a href="#">About</a>
+    </div>
+    <div>
+      <button class="btn btn-out" onclick="openModal('login')">Log in</button>
+      <button class="btn btn-gold" onclick="openModal('signup')">Sign up</button>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <h1>Your intelligent <em>assistant</em> for a better life</h1>
+    <p>Plan your day, manage tasks, track finances, monitor health, and chat with AI - all in one place.</p>
+    <button class="btn btn-gold" onclick="openModal('signup')">Get Started Free</button>
+  </section>
+
+  <!-- FEATURES SECTION -->
+  <div class="features">
+    <div class="feature-card">
+      <h3>Task Management</h3>
+      <p>Organize and prioritize your tasks with smart AI assistance</p>
+    </div>
+    <div class="feature-card">
+      <h3>Finance Tracking</h3>
+      <p>Track expenses and get personalized saving insights</p>
+    </div>
+    <div class="feature-card">
+      <h3>Health Monitoring</h3>
+      <p>Monitor steps, water, sleep with AI recommendations</p>
+    </div>
   </div>
 
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="loginModal">
     <div class="modal">
-      <button class="modal-close" onclick="closeModal('loginModal')">×</button>
-      <div class="modal-header">
-        <div class="modal-title">Welcome <em>back</em></div>
-        <div class="modal-subtitle">Sign in to your LifeAI command centre</div>
-      </div>
-      
-      <!-- LOGIN FORM -->
-      <div id="loginForm">
+      <h2>Welcome Back</h2>
+      <form onsubmit="event.preventDefault(); handleLogin()">
         <div class="form-group">
           <label>Email</label>
-          <input type="email" id="loginEmail" placeholder="your@email.com">
+          <input type="email" id="loginEmail" required>
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="loginPassword" placeholder="••••••••">
+          <input type="password" id="loginPassword" required>
         </div>
-        <div class="form-options">
-          <label class="checkbox">
-            <input type="checkbox"> Remember me
-          </label>
-          <a href="#" class="forgot-link">Forgot password?</a>
-        </div>
-        <button class="btn btn-gold" style="width: 100%;" onclick="handleLogin()">Sign In</button>
-        <div class="modal-footer">
-          Don't have an account? <a href="#" onclick="switchToSignup()">Create one</a>
-        </div>
-      </div>
-
-      <!-- SIGNUP FORM -->
-      <div id="signupForm" style="display: none;">
-        <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" id="signupName" placeholder="John Doe">
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="signupEmail" placeholder="your@email.com">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="signupPassword" placeholder="••••••••">
-        </div>
-        <div class="form-group">
-          <label>Confirm Password</label>
-          <input type="password" id="signupConfirm" placeholder="••••••••">
-        </div>
-        <button class="btn btn-gold" style="width: 100%;" onclick="handleSignup()">Create Account</button>
-        <div class="modal-footer">
-          Already have an account? <a href="#" onclick="switchToLogin()">Sign in</a>
-        </div>
+        <button type="submit" class="btn btn-gold" style="width: 100%;">Sign In</button>
+      </form>
+      <div class="switch-link">
+        Don't have an account? <a onclick="switchToSignup()">Sign up</a>
       </div>
     </div>
   </div>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="container" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-      <div class="logo">
-        <svg class="logo-svg" viewBox="0 0 34 34" fill="none">
-          <path d="M17 2L31 9.5v15L17 32 3 24.5v-15L17 2z" stroke="rgba(201,168,76,.45)" stroke-width="1"/>
-          <path d="M17 6.5L28 12.5v11L17 29.5 6 23.5v-11L17 6.5z" fill="rgba(201,168,76,.05)" stroke="rgba(201,168,76,.25)" stroke-width=".5"/>
-          <circle cx="17" cy="17" r="4" fill="var(--gold)" opacity=".92"/>
-          <circle cx="17" cy="17" r="6.5" stroke="var(--gold)" stroke-width=".5" opacity=".28"/>
-        </svg>
-        <div class="logo-text">
-          <span class="logo-name">LifeAI</span>
-          <span class="logo-tag">Personal Command Centre</span>
+  <!-- SIGNUP MODAL -->
+  <div class="modal-overlay" id="signupModal">
+    <div class="modal">
+      <h2>Create Account</h2>
+      <form onsubmit="event.preventDefault(); handleSignup()">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="signupName" required>
         </div>
-      </div>
-      <div class="nav-links">
-        <a href="#">Home</a>
-        <a href="#">Features</a>
-        <a href="#">Pricing</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
-      </div>
-      <div class="auth-buttons">
-        <button class="btn btn-out" onclick="openModal('loginModal')">Log in</button>
-        <button class="btn btn-gold" onclick="openModal('loginModal'); switchToSignup()">Sign up</button>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signupEmail" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signupPassword" required>
+        </div>
+        <button type="submit" class="btn btn-gold" style="width: 100%;">Create Account</button>
+      </form>
+      <div class="switch-link">
+        Already have an account? <a onclick="switchToLogin()">Sign in</a>
       </div>
     </div>
-  </nav>
-
-  <main class="container">
-    <!-- HERO SECTION -->
-    <section class="hero">
-      <div>
-        <div class="hero-badge">
-          <div class="pip gold"></div>
-          <span>AI-POWERED · FREE FOREVER</span>
-        </div>
-        <h1 class="hero-title">Your intelligent <em>command centre</em> for everything that matters</h1>
-        <p class="hero-subtitle">LifeAI combines powerful AI with elegant design to help you plan your day, manage tasks, track finances, monitor health, and stay on top of what's important.</p>
-        <div style="display: flex; gap: 16px;">
-          <button class="btn btn-gold" onclick="openModal('loginModal'); switchToSignup()">Get Started Free</button>
-          <button class="btn btn-out" onclick="scrollToFeatures()">See Features</button>
-        </div>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">10K+</span>
-            <span class="stat-label">Active Users</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">99.9%</span>
-            <span class="stat-label">Uptime</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">24/7</span>
-            <span class="stat-label">AI Support</span>
-          </div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="hero-card">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
-            <div class="pip" style="background: var(--gold);"></div>
-            <span style="font-family: var(--mono); font-size: .7rem; color: var(--text-3);">LIVE PREVIEW</span>
-          </div>
-          <div class="mini-dashboard">
-            <div class="mini-card">
-              <div class="label">TASKS TODAY</div>
-              <div class="value">4 pending</div>
-              <div class="progress-bar"><div class="progress-fill" style="width: 25%;"></div></div>
-            </div>
-            <div class="mini-card">
-              <div class="label">STEPS</div>
-              <div class="value">6,240</div>
-              <div class="progress-bar"><div class="progress-fill" style="width: 62%;"></div></div>
-            </div>
-            <div class="mini-card">
-              <div class="label">WATER</div>
-              <div class="value">1.4L</div>
-              <div class="progress-bar"><div class="progress-fill" style="width: 70%; background: var(--info);"></div></div>
-            </div>
-            <div class="mini-card">
-              <div class="label">SAVINGS</div>
-              <div class="value">23%</div>
-              <div class="progress-bar"><div class="progress-fill" style="width: 23%; background: var(--em);"></div></div>
-            </div>
-          </div>
-          <div style="margin-top: 20px; font-family: var(--mono); font-size: .7rem; color: var(--text-3); display: flex; justify-content: space-between;">
-            <span>AI insights available</span>
-            <span>updated in real-time</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- FEATURES SECTION -->
-    <h2 class="section-title">Everything you need, <em>intelligently</em></h2>
-    <div class="features-grid">
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <rect x="3" y="3" width="18" height="18" rx="3" stroke-width="1.5"/>
-          <path d="M9 12l2 2 4-4" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <h3 class="feature-title">Smart Task Management</h3>
-        <p class="feature-desc">Prioritize and organize tasks with AI that learns your patterns and suggests optimal workflows.</p>
-      </div>
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <rect x="3" y="4" width="18" height="16" rx="2" stroke-width="1.5"/>
-          <path d="M2 7l10 7 10-7" stroke-width="1.5"/>
-        </svg>
-        <h3 class="feature-title">AI Email Drafting</h3>
-        <p class="feature-desc">Generate professional emails in seconds. Just provide key points and let AI handle the rest.</p>
-      </div>
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M18 20V10M12 20V4M6 20v-6" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <h3 class="feature-title">Financial Intelligence</h3>
-        <p class="feature-desc">Track expenses, get spending insights, and receive personalized saving recommendations.</p>
-      </div>
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke-width="1.5"/>
-        </svg>
-        <h3 class="feature-title">Health & Wellness</h3>
-        <p class="feature-desc">Monitor steps, water intake, sleep, and get AI-powered health insights and reminders.</p>
-      </div>
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.5"/>
-          <path d="M16 2v4M8 2v4M3 10h18" stroke-width="1.5"/>
-        </svg>
-        <h3 class="feature-title">Intelligent Calendar</h3>
-        <p class="feature-desc">Schedule appointments, get smart reminders, and let AI optimize your daily agenda.</p>
-      </div>
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-width="1.5"/>
-        </svg>
-        <h3 class="feature-title">AI Conversation</h3>
-        <p class="feature-desc">Chat with your personal AI assistant about anything - planning, advice, or just casual conversation.</p>
-      </div>
-    </div>
-
-    <!-- TESTIMONIALS -->
-    <h2 class="section-title">Trusted by <em>thousands</em></h2>
-    <div class="testimonials">
-      <div class="testimonial">
-        <div class="testimonial-text">"LifeAI has completely transformed how I organize my day. The AI planner alone saves me hours each week. It's like having a personal assistant 24/7."</div>
-        <div class="testimonial-author">
-          <div class="author-avatar">JD</div>
-          <div class="author-info">
-            <div class="author-name">James Donovan</div>
-            <div class="author-title">Product Manager</div>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial">
-        <div class="testimonial-text">"The finance insights are incredible. It caught subscription services I forgot about and helped me save over £200 monthly. Absolutely game-changing."</div>
-        <div class="testimonial-author">
-          <div class="author-avatar">SR</div>
-          <div class="author-info">
-            <div class="author-name">Sarah Reynolds</div>
-            <div class="author-title">Freelance Designer</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CTA SECTION -->
-    <div class="cta-section">
-      <h2 class="cta-title">Ready to take <em>control</em> of your life?</h2>
-      <div class="cta-buttons">
-        <button class="btn btn-gold" onclick="openModal('loginModal'); switchToSignup()">Get Started Free</button>
-        <button class="btn btn-out" onclick="openModal('loginModal')">Sign In</button>
-      </div>
-      <p style="margin-top: 24px; color: var(--text-3); font-size: .8rem;">No credit card required · Free forever plan available</p>
-    </div>
-  </main>
+  </div>
 
   <!-- FOOTER -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="logo" style="margin-bottom: 16px;">
-            <svg width="32" height="32" viewBox="0 0 34 34" fill="none">
-              <path d="M17 2L31 9.5v15L17 32 3 24.5v-15L17 2z" stroke="rgba(201,168,76,.45)" stroke-width="1"/>
-              <circle cx="17" cy="17" r="4" fill="var(--gold)" opacity=".92"/>
-            </svg>
-            <span class="logo-name" style="font-size: 1.2rem;">LifeAI</span>
-          </div>
-          <p>Your intelligent command centre for a more organized, productive, and balanced life.</p>
-        </div>
-        <div class="footer-links">
-          <h4>Product</h4>
-          <a href="#">Features</a>
-          <a href="#">Pricing</a>
-          <a href="#">Security</a>
-          <a href="#">Roadmap</a>
-        </div>
-        <div class="footer-links">
-          <h4>Company</h4>
-          <a href="#">About</a>
-          <a href="#">Blog</a>
-          <a href="#">Careers</a>
-          <a href="#">Contact</a>
-        </div>
-        <div class="footer-links">
-          <h4>Resources</h4>
-          <a href="#">Help Center</a>
-          <a href="#">Documentation</a>
-          <a href="#">API</a>
-          <a href="#">Status</a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        © 2024 LifeAI. All rights reserved. · Privacy · Terms
-      </div>
-    </div>
+    © 2024 LifeAI. All rights reserved.
   </footer>
 
   <script>
-    // === CONFIG ===
-    const API = 'https://backed-1-837p.onrender.com'; // Your backend URL
+    const API = 'https://backed-1-837p.onrender.com';
 
-    // === MODAL CONTROLS ===
-    function openModal(modalId) {
-      document.getElementById(modalId).classList.add('active');
+    // Modal controls
+    function openModal(type) {
+      if (type === 'login') {
+        document.getElementById('loginModal').classList.add('active');
+      } else {
+        document.getElementById('signupModal').classList.add('active');
+      }
     }
 
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove('active');
+    function closeAllModals() {
+      document.getElementById('loginModal').classList.remove('active');
+      document.getElementById('signupModal').classList.remove('active');
     }
 
-    // Switch between login and signup forms
     function switchToSignup() {
-      document.getElementById('loginForm').style.display = 'none';
-      document.getElementById('signupForm').style.display = 'block';
-      openModal('loginModal');
+      closeAllModals();
+      document.getElementById('signupModal').classList.add('active');
     }
 
     function switchToLogin() {
-      document.getElementById('signupForm').style.display = 'none';
-      document.getElementById('loginForm').style.display = 'block';
+      closeAllModals();
+      document.getElementById('loginModal').classList.add('active');
     }
 
     // Handle login
     async function handleLogin() {
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
-      
-      if (!email || !password) {
-        alert('Please enter both email and password');
-        return;
-      }
-      
-      // Show loading
-      document.getElementById('loading').classList.add('active');
       
       try {
         const response = await fetch(`${API}/api/login`, {
@@ -1108,15 +333,13 @@
           throw new Error(data.error || 'Login failed');
         }
 
-        // Store user session
         localStorage.setItem('lifeai_token', data.token);
         localStorage.setItem('lifeai_user', JSON.stringify(data.user));
-
-        // Redirect to dashboard
+        
+        // REDIRECT TO DASHBOARD - this is the key line!
         window.location.href = '/dashboard.html';
         
       } catch (error) {
-        document.getElementById('loading').classList.remove('active');
         alert(error.message);
       }
     }
@@ -1126,30 +349,12 @@
       const name = document.getElementById('signupName').value;
       const email = document.getElementById('signupEmail').value;
       const password = document.getElementById('signupPassword').value;
-      const confirm = document.getElementById('signupConfirm').value;
-      
-      if (!name || !email || !password || !confirm) {
-        alert('Please fill in all fields');
-        return;
-      }
-      
-      if (password !== confirm) {
-        alert('Passwords do not match');
-        return;
-      }
-      
-      // Show loading
-      document.getElementById('loading').classList.add('active');
       
       try {
         const response = await fetch(`${API}/api/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            fullName: name, 
-            email, 
-            password 
-          })
+          body: JSON.stringify({ fullName: name, email, password })
         });
 
         const data = await response.json();
@@ -1158,38 +363,28 @@
           throw new Error(data.error || 'Signup failed');
         }
 
-        // Store user session
         localStorage.setItem('lifeai_token', data.token);
         localStorage.setItem('lifeai_user', JSON.stringify(data.user));
-
-        // Redirect to dashboard
+        
+        // REDIRECT TO DASHBOARD - this is the key line!
         window.location.href = '/dashboard.html';
         
       } catch (error) {
-        document.getElementById('loading').classList.remove('active');
         alert(error.message);
       }
-    }
-
-    // Scroll to features
-    function scrollToFeatures() {
-      document.querySelector('.features-grid').scrollIntoView({
-        behavior: 'smooth'
-      });
     }
 
     // Close modal when clicking outside
     window.onclick = function(event) {
       if (event.target.classList.contains('modal-overlay')) {
-        event.target.classList.remove('active');
+        closeAllModals();
       }
     }
 
-    // Check if user is already logged in and redirect to dashboard
+    // Check if already logged in
     window.onload = function() {
       const token = localStorage.getItem('lifeai_token');
       if (token) {
-        // User is already logged in, send them to dashboard
         window.location.href = '/dashboard.html';
       }
     }
