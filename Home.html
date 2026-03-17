@@ -4,25 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LifeAI — Your Intelligent Personal Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* Simple home page styles only - no dashboard styles */
-    :root {
-      --void:#080a08; --ink:#0e1210; --surface:#131814; --surface-2:#181f19;
-      --border:#243020; --gold:#c9a84c; --gold-d:#8a6e2e;
-      --text:#e8ede4; --text-2:#8a9e82; --text-3:#3d5038;
-      --display:'Cormorant Garamond',serif;
-      --body:'Outfit',sans-serif; --mono:'Fira Code',monospace;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
     body {
-      font-family: var(--body);
-      background: var(--void);
-      color: var(--text);
+      background: #080a08;
+      color: #e8ede4;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
     }
 
@@ -32,68 +24,80 @@
       justify-content: space-between;
       align-items: center;
       padding: 20px 40px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(8,10,8,.95);
+      border-bottom: 1px solid #243020;
+      background: rgba(8,10,8,0.95);
     }
 
     .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--display);
       font-size: 1.5rem;
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #c9a84c;
+      font-style: italic;
     }
 
     .nav-links a {
-      color: var(--text-2);
+      color: #8a9e82;
       text-decoration: none;
       margin: 0 15px;
     }
 
+    .nav-links a:hover {
+      color: #c9a84c;
+    }
+
+    /* Buttons */
     .btn {
-      padding: 10px 20px;
+      padding: 10px 24px;
       border-radius: 6px;
       border: none;
       cursor: pointer;
-      font-family: var(--body);
+      font-size: 0.9rem;
+      margin-left: 10px;
     }
 
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold-d), var(--gold));
-      color: var(--void);
+    .btn-primary {
+      background: linear-gradient(135deg, #8a6e2e, #c9a84c);
+      color: #080a08;
     }
 
-    .btn-out {
+    .btn-secondary {
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
+      border: 1px solid #243020;
+      color: #e8ede4;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(201,168,76,0.2);
     }
 
     /* Hero Section */
     .hero {
-      max-width: 1200px;
-      margin: 60px auto;
-      padding: 0 20px;
       text-align: center;
+      padding: 100px 20px;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
     .hero h1 {
-      font-family: var(--display);
-      font-size: 4rem;
+      font-size: 3.5rem;
       font-weight: 300;
       margin-bottom: 20px;
     }
 
     .hero h1 em {
-      color: var(--gold);
+      color: #c9a84c;
       font-style: italic;
     }
 
     .hero p {
-      color: var(--text-2);
+      color: #8a9e82;
       font-size: 1.2rem;
-      max-width: 600px;
-      margin: 0 auto 30px;
+      margin-bottom: 30px;
     }
 
     /* Features Grid */
@@ -102,25 +106,25 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 30px;
       max-width: 1200px;
-      margin: 80px auto;
+      margin: 60px auto;
       padding: 0 20px;
     }
 
     .feature-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: #131814;
+      border: 1px solid #243020;
       border-radius: 12px;
       padding: 30px;
       text-align: center;
     }
 
     .feature-card h3 {
-      margin: 15px 0 10px;
-      color: var(--gold);
+      color: #c9a84c;
+      margin-bottom: 10px;
     }
 
     .feature-card p {
-      color: var(--text-2);
+      color: #8a9e82;
     }
 
     /* Modal */
@@ -131,9 +135,10 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.9);
       align-items: center;
       justify-content: center;
+      z-index: 1000;
     }
 
     .modal-overlay.active {
@@ -141,8 +146,8 @@
     }
 
     .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: #131814;
+      border: 1px solid #243020;
       border-radius: 12px;
       padding: 40px;
       width: 90%;
@@ -152,6 +157,7 @@
     .modal h2 {
       text-align: center;
       margin-bottom: 30px;
+      color: #c9a84c;
     }
 
     .form-group {
@@ -161,47 +167,106 @@
     .form-group label {
       display: block;
       margin-bottom: 5px;
-      color: var(--text-2);
+      color: #8a9e82;
+      font-size: 0.9rem;
     }
 
     .form-group input {
       width: 100%;
-      padding: 10px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
+      padding: 12px;
+      background: #181f19;
+      border: 1px solid #243020;
       border-radius: 6px;
-      color: var(--text);
+      color: #e8ede4;
+      font-size: 1rem;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #c9a84c;
     }
 
     .switch-link {
       text-align: center;
       margin-top: 20px;
-      color: var(--text-2);
+      color: #8a9e82;
     }
 
     .switch-link a {
-      color: var(--gold);
+      color: #c9a84c;
       cursor: pointer;
       text-decoration: none;
+    }
+
+    .switch-link a:hover {
+      text-decoration: underline;
+    }
+
+    .modal-close {
+      float: right;
+      cursor: pointer;
+      color: #8a9e82;
+      font-size: 1.5rem;
+    }
+
+    .modal-close:hover {
+      color: #c9a84c;
     }
 
     /* Footer */
     .footer {
       text-align: center;
       padding: 40px;
-      border-top: 1px solid var(--border);
-      color: var(--text-3);
+      border-top: 1px solid #243020;
+      color: #3d5038;
+      margin-top: 60px;
+    }
+
+    /* Loading */
+    .loading-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #080a08;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .loading-screen.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid #243020;
+      border-top-color: #c9a84c;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
+  <!-- LOADING SCREEN -->
+  <div class="loading-screen" id="loading">
+    <div class="spinner"></div>
+    <div style="color: #c9a84c;">Loading LifeAI...</div>
+  </div>
+
   <!-- NAVBAR -->
   <nav class="navbar">
     <div class="logo">
-      <svg width="30" height="30" viewBox="0 0 34 34">
-        <circle cx="17" cy="17" r="4" fill="var(--gold)"/>
-      </svg>
-      <span>LifeAI</span>
+      LifeAI<span>.</span>
     </div>
     <div class="nav-links">
       <a href="#">Home</a>
@@ -209,8 +274,8 @@
       <a href="#">About</a>
     </div>
     <div>
-      <button class="btn btn-out" onclick="openModal('login')">Log in</button>
-      <button class="btn btn-gold" onclick="openModal('signup')">Sign up</button>
+      <button class="btn btn-secondary" onclick="openModal('login')">Log in</button>
+      <button class="btn btn-primary" onclick="openModal('signup')">Sign up</button>
     </div>
   </nav>
 
@@ -218,21 +283,21 @@
   <section class="hero">
     <h1>Your intelligent <em>assistant</em> for a better life</h1>
     <p>Plan your day, manage tasks, track finances, monitor health, and chat with AI - all in one place.</p>
-    <button class="btn btn-gold" onclick="openModal('signup')">Get Started Free</button>
+    <button class="btn btn-primary" onclick="openModal('signup')">Get Started Free</button>
   </section>
 
   <!-- FEATURES SECTION -->
   <div class="features">
     <div class="feature-card">
-      <h3>Task Management</h3>
+      <h3>📋 Task Management</h3>
       <p>Organize and prioritize your tasks with smart AI assistance</p>
     </div>
     <div class="feature-card">
-      <h3>Finance Tracking</h3>
+      <h3>💰 Finance Tracking</h3>
       <p>Track expenses and get personalized saving insights</p>
     </div>
     <div class="feature-card">
-      <h3>Health Monitoring</h3>
+      <h3>❤️ Health Monitoring</h3>
       <p>Monitor steps, water, sleep with AI recommendations</p>
     </div>
   </div>
@@ -240,18 +305,17 @@
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="loginModal">
     <div class="modal">
+      <span class="modal-close" onclick="closeModal('login')">&times;</span>
       <h2>Welcome Back</h2>
-      <form onsubmit="event.preventDefault(); handleLogin()">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="loginEmail" required>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="loginPassword" required>
-        </div>
-        <button type="submit" class="btn btn-gold" style="width: 100%;">Sign In</button>
-      </form>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" style="width: 100%;" onclick="handleLogin()">Sign In</button>
       <div class="switch-link">
         Don't have an account? <a onclick="switchToSignup()">Sign up</a>
       </div>
@@ -261,22 +325,21 @@
   <!-- SIGNUP MODAL -->
   <div class="modal-overlay" id="signupModal">
     <div class="modal">
+      <span class="modal-close" onclick="closeModal('signup')">&times;</span>
       <h2>Create Account</h2>
-      <form onsubmit="event.preventDefault(); handleSignup()">
-        <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" id="signupName" required>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="signupEmail" required>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="signupPassword" required>
-        </div>
-        <button type="submit" class="btn btn-gold" style="width: 100%;">Create Account</button>
-      </form>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="signupName" placeholder="John Doe">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" style="width: 100%;" onclick="handleSignup()">Create Account</button>
       <div class="switch-link">
         Already have an account? <a onclick="switchToLogin()">Sign in</a>
       </div>
@@ -293,10 +356,19 @@
 
     // Modal controls
     function openModal(type) {
+      document.getElementById('loading').classList.remove('active');
       if (type === 'login') {
         document.getElementById('loginModal').classList.add('active');
       } else {
         document.getElementById('signupModal').classList.add('active');
+      }
+    }
+
+    function closeModal(type) {
+      if (type === 'login') {
+        document.getElementById('loginModal').classList.remove('active');
+      } else {
+        document.getElementById('signupModal').classList.remove('active');
       }
     }
 
@@ -320,6 +392,15 @@
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
       
+      if (!email || !password) {
+        alert('Please enter both email and password');
+        return;
+      }
+      
+      // Show loading
+      document.getElementById('loading').classList.add('active');
+      closeAllModals();
+      
       try {
         const response = await fetch(`${API}/api/login`, {
           method: 'POST',
@@ -333,13 +414,15 @@
           throw new Error(data.error || 'Login failed');
         }
 
+        // Store user session
         localStorage.setItem('lifeai_token', data.token);
         localStorage.setItem('lifeai_user', JSON.stringify(data.user));
         
-        // REDIRECT TO DASHBOARD - this is the key line!
+        // 🎯 REDIRECT TO DASHBOARD
         window.location.href = '/dashboard.html';
         
       } catch (error) {
+        document.getElementById('loading').classList.remove('active');
         alert(error.message);
       }
     }
@@ -349,6 +432,15 @@
       const name = document.getElementById('signupName').value;
       const email = document.getElementById('signupEmail').value;
       const password = document.getElementById('signupPassword').value;
+      
+      if (!name || !email || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      // Show loading
+      document.getElementById('loading').classList.add('active');
+      closeAllModals();
       
       try {
         const response = await fetch(`${API}/api/register`, {
@@ -363,13 +455,15 @@
           throw new Error(data.error || 'Signup failed');
         }
 
+        // Store user session
         localStorage.setItem('lifeai_token', data.token);
         localStorage.setItem('lifeai_user', JSON.stringify(data.user));
         
-        // REDIRECT TO DASHBOARD - this is the key line!
+        // 🎯 REDIRECT TO DASHBOARD
         window.location.href = '/dashboard.html';
         
       } catch (error) {
+        document.getElementById('loading').classList.remove('active');
         alert(error.message);
       }
     }
@@ -385,6 +479,7 @@
     window.onload = function() {
       const token = localStorage.getItem('lifeai_token');
       if (token) {
+        // Already logged in - go straight to dashboard
         window.location.href = '/dashboard.html';
       }
     }
