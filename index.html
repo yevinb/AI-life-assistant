@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LifeAI — Intelligent Personal Command Centre</title>
+<title>LifeAI — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -44,8 +44,12 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes breathe{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.7);}}
 .top-r{display:flex;align-items:center;gap:12px;}
 #tclock{font-family:var(--mono);font-size:.78rem;color:var(--text-2);letter-spacing:.04em;}
-.av{width:34px;height:34px;background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:var(--void);cursor:pointer;transition:box-shadow .2s;}
+.av{width:34px;height:34px;background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:var(--void);cursor:pointer;transition:box-shadow .2s;position:relative;}
 .av:hover{box-shadow:0 0 0 3px rgba(201,168,76,.2);}
+.logout-dropdown{position:absolute;top:45px;right:0;background:var(--surface-3);border:1px solid var(--border);border-radius:var(--rm);padding:8px 0;min-width:120px;display:none;z-index:100;}
+.logout-dropdown.show{display:block;}
+.logout-dropdown div{padding:8px 16px;cursor:pointer;color:var(--text-2);font-size:.8rem;}
+.logout-dropdown div:hover{background:var(--surface-2);color:var(--danger);}
 
 /* SIDEBAR */
 .sidebar{border-right:1px solid var(--border);background:var(--ink);padding:18px 11px;display:flex;flex-direction:column;overflow-y:auto;gap:2px;}
@@ -329,7 +333,12 @@ select option{background:var(--surface-3);}
     </div>
     <div class="top-r">
       <span id="tclock">—</span>
-      <div class="av">U</div>
+      <div class="av" onclick="toggleLogout()">
+        U
+        <div class="logout-dropdown" id="logoutDropdown">
+          <div onclick="logout()">🚪 Sign Out</div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -452,7 +461,6 @@ select option{background:var(--surface-3);}
           <div class="chip" onclick="qs('Plan my day intelligently')">📅 Plan my day</div>
           <div class="chip" onclick="qs('Give me a finance summary')">💰 Finance summary</div>
           <div class="chip" onclick="qs('Draft a professional apology email')">✉️ Draft an email</div>
-          <!-- NEW FITNESS CHIPS -->
           <div class="chip" onclick="qs('How are my steps today?')">👟 Check steps</div>
           <div class="chip" onclick="qs('Am I drinking enough water?')">💧 Water check</div>
           <div class="chip" onclick="qs('Give me a health summary')">📊 Health summary</div>
@@ -530,6 +538,15 @@ select option{background:var(--surface-3);}
 // ═══════ CONFIG ═══════
 const API = 'https://backed-1-837p.onrender.com'; // Your Render URL
 
+// ═══════ AUTH CHECK ═══════
+const token = localStorage.getItem('lifeai_token');
+const user = JSON.parse(localStorage.getItem('lifeai_user') || 'null');
+
+// If no token, redirect to home page
+if (!token) {
+  window.location.href = '/';
+}
+
 // ═══════ STATE ═══════
 const S = {
   tasks:[
@@ -576,6 +593,35 @@ function initDate(){
 }
 setInterval(tick,1000);tick();initDate();
 
+// ═══════ LOGOUT ═══════
+function toggleLogout() {
+  document.getElementById('logoutDropdown').classList.toggle('show');
+}
+
+// Close logout dropdown when clicking outside
+window.onclick = function(event) {
+  if (!event.target.matches('.av')) {
+    const dropdown = document.getElementById('logoutDropdown');
+    if (dropdown.classList.contains('show')) {
+      dropdown.classList.remove('show');
+    }
+  }
+}
+
+function logout() {
+  // Clear user data
+  localStorage.removeItem('lifeai_token');
+  localStorage.removeItem('lifeai_user');
+  
+  // Show toast
+  toast('Signed out successfully', 'ok');
+  
+  // Redirect to home page
+  setTimeout(() => {
+    window.location.href = '/';
+  }, 1000);
+}
+
 // ═══════ NAV ═══════
 function nav(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
@@ -592,16 +638,38 @@ function toast(m,t='ok'){
   setTimeout(()=>{el.style.transition='all .28s';el.style.opacity='0';el.style.transform='translateX(110%)';setTimeout(()=>el.remove(),300);},3400);
 }
 
-// ═══════ API ═══════
-async function post(ep,body){
-  try{const r=await fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
-  catch(e){return{_e:true,m:e.message};}
+// ═══════ API CALL WITH AUTH ═══════
+async function post(ep, body){
+  try{
+    const r = await fetch(API + ep, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (r.status === 401 || r.status === 403) {
+      // Token expired
+      localStorage.removeItem('lifeai_token');
+      localStorage.removeItem('lifeai_user');
+      window.location.href = '/';
+      return { _e: true, m: 'Session expired' };
+    }
+    
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  }
+  catch(e){
+    return{_e:true,m:e.message};
+  }
 }
 
-// ═══════ FITNESS DATA COLLECTOR (NEW) ═══════
+// ═══════ FITNESS DATA COLLECTOR ═══════
 function getFitnessContext() {
   // Get current values from the UI/state
-  const stepsCurrent = 6240; // From your ring display
+  const stepsCurrent = 6240;
   const stepsGoal = 10000;
   const waterCurrent = 1.4;
   const waterGoal = 2.0;
@@ -619,26 +687,17 @@ function getFitnessContext() {
   // Get today's activity data
   const weeklyActivity = [72, 55, 88, 64, 91, 45, 62];
   
-  // Calculate trends (compare with yesterday's data)
-  // In a real app, you'd store historical data
-  const stepsYesterday = 5840;
-  const stepsTrend = stepsCurrent > stepsYesterday ? 'up' : 'down';
-  const waterYesterday = 1.2;
-  const waterTrend = waterCurrent > waterYesterday ? 'up' : 'down';
-  
   return {
     steps: { 
       current: stepsCurrent, 
       goal: stepsGoal, 
       progress: Math.round((stepsCurrent/stepsGoal)*100), 
-      trend: stepsTrend,
       remaining: stepsGoal - stepsCurrent
     },
     water: { 
       current: waterCurrent, 
       goal: waterGoal, 
       progress: Math.round((waterCurrent/waterGoal)*100), 
-      trend: waterTrend,
       unit: 'L',
       remaining: (waterGoal - waterCurrent).toFixed(1)
     },
@@ -662,21 +721,20 @@ function getFitnessContext() {
       completed: S.tasks.filter(t => t.done).length,
       pending: S.tasks.filter(t => !t.done).length,
       total: S.tasks.length
-    },
-    lastUpdated: new Date().toLocaleTimeString()
+    }
   };
 }
 
-// ═══════ FITNESS KEYWORDS (NEW) ═══════
+// ═══════ FITNESS KEYWORDS ═══════
 const fitnessKeywords = [
   'step', 'walk', 'run', 'exercise', 'workout', 'fitness',
   'water', 'drink', 'hydrat', 'sleep', 'rest', 'nap',
   'mindful', 'meditat', 'stress', 'health', 'healthy',
   'remind', 'reminder', 'activity', 'active', 'goal',
-  'progress', 'track', 'trend', 'yesterday', 'today'
+  'progress', 'track', 'trend'
 ];
 
-// ═══════ CHECK IF FITNESS QUERY (NEW) ═══════
+// ═══════ CHECK IF FITNESS QUERY ═══════
 function isFitnessQuery(text) {
   const lowerText = text.toLowerCase();
   return fitnessKeywords.some(keyword => lowerText.includes(keyword));
@@ -721,7 +779,7 @@ async function bookApt(){
   const title=document.getElementById('a-title').value.trim(),dt=document.getElementById('a-dt').value,loc=document.getElementById('a-loc').value.trim(),notes=document.getElementById('a-notes').value.trim();
   if(!title||!dt){toast('Title and date/time required','er');return;}
   S.apts.push({id:Date.now(),title,dt,loc,notes});renderApts();
-  const r=await post('/appointments',{title,datetime:dt,location:loc,notes});
+  const r=await post('/api/appointments',{title,datetime:dt,location:loc,notes});
   toast(r._e?'Saved locally (backend offline)':'Appointment booked! 📅');
   ['a-title','a-dt','a-loc','a-notes'].forEach(id=>document.getElementById(id).value='');
 }
@@ -747,7 +805,7 @@ async function draftEmail(){
   const to=document.getElementById('e-to').value.trim(),sub=document.getElementById('e-sub').value.trim(),pts=document.getElementById('e-pts').value.trim(),tone=document.getElementById('e-tone').value;
   if(!pts){toast('Describe what the email should say','er');return;}
   const out=document.getElementById('email-out');out.style.display='block';out.textContent='Composing…';out.classList.add('streaming');
-  const r=await post('/draft-email',{to,subject:sub,points:pts,tone});
+  const r=await post('/api/draft-email',{to,subject:sub,points:pts,tone});
   out.classList.remove('streaming');
   out.textContent=r._e?`Subject: ${sub||'Re: Your message'}\n\nDear ${to||'recipient'},\n\nI hope this message finds you well.\n\n${pts}\n\nPlease let me know if you have any questions.\n\nKind regards,\n[Your Name]`:r.draft;
   toast('Email draft ready ✓');
@@ -782,7 +840,7 @@ function addExp(){
 }
 async function finSum(){
   const out=document.getElementById('fin-out');out.style.display='block';out.textContent='Analysing your finances…';out.classList.add('streaming');
-  const r=await post('/finance-summary',{expenses:S.exps});
+  const r=await post('/api/finance-summary',{expenses:S.exps});
   out.classList.remove('streaming');
   if(r._e){const tot=S.exps.reduce((s,e)=>s+parseFloat(e.amt),0);const top=[...S.exps].sort((a,b)=>b.amt-a.amt)[0];out.textContent=`📊 Finance Summary\n\nTotal tracked: £${tot.toFixed(2)}\nLargest expense: ${top.desc} (£${top.amt})\n\nYou're spending most on ${top.cat}. Consider reviewing subscriptions and setting a weekly cap. Your savings rate of 23% is close to the 25% target — keep it up!`;}
   else out.textContent=r.summary;
@@ -826,13 +884,13 @@ function renderActBars(){
 // ═══════ DAY PLANNER ═══════
 async function planDay(){
   const out=document.getElementById('plan-out');out.textContent='Planning your day…';out.classList.add('streaming');
-  const r=await post('/plan-day',{tasks:S.tasks.filter(t=>!t.done).map(t=>({name:t.name,priority:t.prio})),appointments:S.apts.map(a=>({title:a.title,datetime:a.dt}))});
+  const r=await post('/api/plan-day',{tasks:S.tasks.filter(t=>!t.done).map(t=>({name:t.name,priority:t.prio})),appointments:S.apts.map(a=>({title:a.title,datetime:a.dt}))});
   out.classList.remove('streaming');
   out.textContent=r._e?`🌅 Here's your optimised day:\n\n08:30 — Deep work: Review project proposal (high priority)\n10:00 — Quick break + water 💧\n11:00 — Pay electricity bill (10 min)\n12:00 — Email triage\n13:00 — Lunch + 20-min walk 🚶\n15:00 — GP check-up appointment\n16:30 — Review Q3 financials\n17:30 — Wind down, prep tomorrow\n\nFocus on the high-priority items first thing — you've got this! 💪`:r.plan;
   toast('Day plan ready ✓');
 }
 
-// ═══════ UPDATED CHAT FUNCTION WITH FITNESS CONTEXT ═══════
+// ═══════ CHAT ═══════
 function appendMsg(role,text){
   const c=document.getElementById('chat-msgs'),now=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   const div=document.createElement('div');div.className='cm '+role;
@@ -857,18 +915,15 @@ async function sendChat(){
   let messageToSend = txt;
   
   if (hasFitnessContext) {
-    // Include fitness context for relevant queries
     const fitnessContext = getFitnessContext();
-    messageToSend = `[FITNESS DATA - Current stats: Steps: ${fitnessContext.steps.current}/${fitnessContext.steps.goal} (${fitnessContext.steps.progress}%), Water: ${fitnessContext.water.current}L/${fitnessContext.water.goal}L, Sleep: ${fitnessContext.sleep.current}h/${fitnessContext.sleep.goal}h, Mindfulness: ${fitnessContext.mindfulness.current}min/${fitnessContext.mindfulness.goal}min, Reminders: ${fitnessContext.reminders.length} active, Tasks: ${fitnessContext.tasks.completed}/${fitnessContext.tasks.total} completed]
+    messageToSend = `[FITNESS DATA - Steps: ${fitnessContext.steps.current}/${fitnessContext.steps.goal} (${fitnessContext.steps.progress}%), Water: ${fitnessContext.water.current}L/${fitnessContext.water.goal}L, Sleep: ${fitnessContext.sleep.current}h/${fitnessContext.sleep.goal}h, Reminders: ${fitnessContext.reminders.length} active]
 User asks: ${txt}`;
-    
-    console.log('Fitness context added to message'); // For debugging
   }
   
   setTyp(true);
   document.getElementById('sbtn').disabled=true;
   
-  const r = await post('/chat', {
+  const r = await post('/api/chat', {
     message: messageToSend,
     history: S.hist.slice(-10)
   });
@@ -881,7 +936,7 @@ User asks: ${txt}`;
   S.hist.push({ role: 'assistant', content: rep });
 }
 
-// ═══════ QUICK QUESTION (UPDATED) ═══════
+// ═══════ QUICK QUESTION ═══════
 function qs(t){
   document.getElementById('cinput').value=t;
   sendChat();
@@ -895,18 +950,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';});
   ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}});
   
-  // Save daily fitness snapshot
-  const today = new Date().toDateString();
-  const lastSave = localStorage.getItem('lastFitnessSave');
-  if (lastSave !== today) {
-    const snapshot = {
-      date: today,
-      ...getFitnessContext()
-    };
-    S.fitnessHistory.unshift(snapshot);
-    if (S.fitnessHistory.length > 30) S.fitnessHistory.pop();
-    localStorage.setItem('fitnessHistory', JSON.stringify(S.fitnessHistory));
-    localStorage.setItem('lastFitnessSave', today);
+  // Show user name if available
+  if (user && user.fullName) {
+    const av = document.querySelector('.av');
+    if (av) {
+      av.innerHTML = user.fullName.charAt(0).toUpperCase() + '<div class="logout-dropdown" id="logoutDropdown"><div onclick="logout()">🚪 Sign Out</div></div>';
+    }
   }
 });
 </script>
