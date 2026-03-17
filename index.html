@@ -302,7 +302,9 @@ select option{background:var(--surface-3);}
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
-  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 24 24"><path d="M23 6l-7 8-4-4-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 24 24"><path d="M23 18l-7-8-4 4-6-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
 </svg>
 
 <div class="shell">
@@ -450,12 +452,15 @@ select option{background:var(--surface-3);}
           <div class="chip" onclick="qs('Plan my day intelligently')">📅 Plan my day</div>
           <div class="chip" onclick="qs('Give me a finance summary')">💰 Finance summary</div>
           <div class="chip" onclick="qs('Draft a professional apology email')">✉️ Draft an email</div>
-          <div class="chip" onclick="qs('What health habits should I focus on?')">🏃 Health advice</div>
-          <div class="chip" onclick="qs('Help me prioritise my tasks for today')">✅ Prioritise tasks</div>
-          <div class="chip" onclick="qs('What are some good productivity techniques?')">⚡ Productivity tips</div>
+          <!-- NEW FITNESS CHIPS -->
+          <div class="chip" onclick="qs('How are my steps today?')">👟 Check steps</div>
+          <div class="chip" onclick="qs('Am I drinking enough water?')">💧 Water check</div>
+          <div class="chip" onclick="qs('Give me a health summary')">📊 Health summary</div>
+          <div class="chip" onclick="qs('Suggest a workout based on my activity')">🏋️ Workout suggestion</div>
+          <div class="chip" onclick="qs('What are my active reminders?')">⏰ My reminders</div>
         </div>
         <div class="ci-row">
-          <textarea id="cinput" placeholder="Ask me anything… plan my week, draft a message, analyse spending…" rows="1"></textarea>
+          <textarea id="cinput" placeholder="Ask me anything… plan my week, draft a message, analyse spending, check my health…" rows="1"></textarea>
           <button class="sbtn" id="sbtn" onclick="sendChat()"><svg width="17" height="17"><use href="#i-send"/></svg></button>
         </div>
       </div>
@@ -523,7 +528,7 @@ select option{background:var(--surface-3);}
 
 <script>
 // ═══════ CONFIG ═══════
-const API = 'https://backed-1-837p.onrender.com'; // ← Replace with your Render URL
+const API = 'https://backed-1-837p.onrender.com'; // Your Render URL
 
 // ═══════ STATE ═══════
 const S = {
@@ -558,6 +563,7 @@ const S = {
     {id:5,txt:'Evening mindfulness',tm:'21:00',on:true},
   ],
   hist:[],
+  fitnessHistory: JSON.parse(localStorage.getItem('fitnessHistory') || '[]')
 };
 
 // ═══════ CLOCK ═══════
@@ -590,6 +596,90 @@ function toast(m,t='ok'){
 async function post(ep,body){
   try{const r=await fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
   catch(e){return{_e:true,m:e.message};}
+}
+
+// ═══════ FITNESS DATA COLLECTOR (NEW) ═══════
+function getFitnessContext() {
+  // Get current values from the UI/state
+  const stepsCurrent = 6240; // From your ring display
+  const stepsGoal = 10000;
+  const waterCurrent = 1.4;
+  const waterGoal = 2.0;
+  const sleepCurrent = 6.5;
+  const sleepGoal = 8;
+  const mindfulnessCurrent = 10;
+  const mindfulnessGoal = 20;
+  
+  // Get active reminders
+  const activeReminders = S.rems.filter(r => r.on).map(r => ({
+    text: r.txt,
+    time: r.tm
+  }));
+  
+  // Get today's activity data
+  const weeklyActivity = [72, 55, 88, 64, 91, 45, 62];
+  
+  // Calculate trends (compare with yesterday's data)
+  // In a real app, you'd store historical data
+  const stepsYesterday = 5840;
+  const stepsTrend = stepsCurrent > stepsYesterday ? 'up' : 'down';
+  const waterYesterday = 1.2;
+  const waterTrend = waterCurrent > waterYesterday ? 'up' : 'down';
+  
+  return {
+    steps: { 
+      current: stepsCurrent, 
+      goal: stepsGoal, 
+      progress: Math.round((stepsCurrent/stepsGoal)*100), 
+      trend: stepsTrend,
+      remaining: stepsGoal - stepsCurrent
+    },
+    water: { 
+      current: waterCurrent, 
+      goal: waterGoal, 
+      progress: Math.round((waterCurrent/waterGoal)*100), 
+      trend: waterTrend,
+      unit: 'L',
+      remaining: (waterGoal - waterCurrent).toFixed(1)
+    },
+    sleep: { 
+      current: sleepCurrent, 
+      goal: sleepGoal, 
+      progress: Math.round((sleepCurrent/sleepGoal)*100), 
+      unit: 'hours',
+      remaining: (sleepGoal - sleepCurrent).toFixed(1)
+    },
+    mindfulness: { 
+      current: mindfulnessCurrent, 
+      goal: mindfulnessGoal, 
+      progress: Math.round((mindfulnessCurrent/mindfulnessGoal)*100), 
+      unit: 'min',
+      remaining: mindfulnessGoal - mindfulnessCurrent
+    },
+    reminders: activeReminders,
+    weeklyActivity: weeklyActivity,
+    tasks: {
+      completed: S.tasks.filter(t => t.done).length,
+      pending: S.tasks.filter(t => !t.done).length,
+      total: S.tasks.length
+    },
+    lastUpdated: new Date().toLocaleTimeString()
+  };
+}
+
+// ═══════ FITNESS KEYWORDS (NEW) ═══════
+const fitnessKeywords = [
+  'step', 'walk', 'run', 'exercise', 'workout', 'fitness',
+  'water', 'drink', 'hydrat', 'sleep', 'rest', 'nap',
+  'mindful', 'meditat', 'stress', 'health', 'healthy',
+  'remind', 'reminder', 'activity', 'active', 'goal',
+  'progress', 'track', 'trend', 'yesterday', 'today'
+];
+
+// ═══════ CHECK IF FITNESS QUERY (NEW) ═══════
+function isFitnessQuery(text) {
+  const lowerText = text.toLowerCase();
+  return fitnessKeywords.some(keyword => lowerText.includes(keyword));
 }
 
 // ═══════ TASKS ═══════
@@ -742,7 +832,7 @@ async function planDay(){
   toast('Day plan ready ✓');
 }
 
-// ═══════ CHAT ═══════
+// ═══════ UPDATED CHAT FUNCTION WITH FITNESS CONTEXT ═══════
 function appendMsg(role,text){
   const c=document.getElementById('chat-msgs'),now=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   const div=document.createElement('div');div.className='cm '+role;
@@ -750,16 +840,52 @@ function appendMsg(role,text){
   c.appendChild(div);c.scrollTop=c.scrollHeight;
 }
 function setTyp(v){document.getElementById('typing').classList.toggle('on',v);document.getElementById('chat-msgs').scrollTop=99999;}
+
 async function sendChat(){
-  const inp=document.getElementById('cinput'),txt=inp.value.trim();if(!txt)return;
-  inp.value='';inp.style.height='auto';appendMsg('user',txt);S.hist.push({role:'user',content:txt});
-  setTyp(true);document.getElementById('sbtn').disabled=true;
-  const r=await post('/chat',{message:txt,history:S.hist.slice(-10)});
-  setTyp(false);document.getElementById('sbtn').disabled=false;
-  const rep=r._e?`I can't reach the server right now. Please check your backend URL in the script config.\n\n(Error: ${r.m})`:r.reply;
-  appendMsg('ai',rep);S.hist.push({role:'assistant',content:rep});
+  const inp=document.getElementById('cinput');
+  const txt=inp.value.trim();
+  if(!txt)return;
+  
+  inp.value='';
+  inp.style.height='auto';
+  appendMsg('user',txt);
+  
+  // Check if this is a fitness-related query
+  const hasFitnessContext = isFitnessQuery(txt);
+  
+  // Prepare the message with context if needed
+  let messageToSend = txt;
+  
+  if (hasFitnessContext) {
+    // Include fitness context for relevant queries
+    const fitnessContext = getFitnessContext();
+    messageToSend = `[FITNESS DATA - Current stats: Steps: ${fitnessContext.steps.current}/${fitnessContext.steps.goal} (${fitnessContext.steps.progress}%), Water: ${fitnessContext.water.current}L/${fitnessContext.water.goal}L, Sleep: ${fitnessContext.sleep.current}h/${fitnessContext.sleep.goal}h, Mindfulness: ${fitnessContext.mindfulness.current}min/${fitnessContext.mindfulness.goal}min, Reminders: ${fitnessContext.reminders.length} active, Tasks: ${fitnessContext.tasks.completed}/${fitnessContext.tasks.total} completed]
+User asks: ${txt}`;
+    
+    console.log('Fitness context added to message'); // For debugging
+  }
+  
+  setTyp(true);
+  document.getElementById('sbtn').disabled=true;
+  
+  const r = await post('/chat', {
+    message: messageToSend,
+    history: S.hist.slice(-10)
+  });
+  
+  setTyp(false);
+  document.getElementById('sbtn').disabled=false;
+  
+  const rep = r._e ? `I can't reach the server right now. (Error: ${r.m})` : r.reply;
+  appendMsg('ai', rep);
+  S.hist.push({ role: 'assistant', content: rep });
 }
-function qs(t){document.getElementById('cinput').value=t;sendChat();}
+
+// ═══════ QUICK QUESTION (UPDATED) ═══════
+function qs(t){
+  document.getElementById('cinput').value=t;
+  sendChat();
+}
 
 // ═══════ INIT ═══════
 document.addEventListener('DOMContentLoaded',()=>{
@@ -768,6 +894,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   const ta=document.getElementById('cinput');
   ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';});
   ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}});
+  
+  // Save daily fitness snapshot
+  const today = new Date().toDateString();
+  const lastSave = localStorage.getItem('lastFitnessSave');
+  if (lastSave !== today) {
+    const snapshot = {
+      date: today,
+      ...getFitnessContext()
+    };
+    S.fitnessHistory.unshift(snapshot);
+    if (S.fitnessHistory.length > 30) S.fitnessHistory.pop();
+    localStorage.setItem('fitnessHistory', JSON.stringify(S.fitnessHistory));
+    localStorage.setItem('lastFitnessSave', today);
+  }
 });
 </script>
 </body>
